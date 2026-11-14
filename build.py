@@ -370,12 +370,12 @@ def main():
         pager = ''
         if next_p or prev_p:
             pager = '<nav class="pager">'
-            if next_p:
-                pager += '<a class="pager__item" href="/posts/%s/"><span>다음 글</span><strong>%s</strong></a>' % (
-                    next_p['slug'], esc(next_p['title']))
             if prev_p:
-                pager += '<a class="pager__item pager__item--prev" href="/posts/%s/"><span>이전 글</span><strong>%s</strong></a>' % (
-                    prev_p['slug'], esc(prev_p['title']))
+                pager += ('<a class="pager__item" href="/posts/%s/"><span>이전 글</span><strong>%s</strong></a>'
+                          % (prev_p['slug'], esc(prev_p['title'])))
+            if next_p:
+                pager += ('<a class="pager__item pager__item--next" href="/posts/%s/"><span>다음 글</span><strong>%s</strong></a>'
+                          % (next_p['slug'], esc(next_p['title'])))
             pager += '</nav>'
 
         article = fill(post_tpl, {

@@ -557,8 +557,7 @@ img { max-width: 100%; display: block; }
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.pager__item--prev { text-align: right; }
-.pager__item--prev strong { direction: rtl; text-align: right; }
+.pager__item--next { text-align: right; }
 
 /* ---------------------------------------------------------- archive */
 .archive, .about { padding-top: 56px; padding-bottom: 60px; }
@@ -723,8 +722,7 @@ img { max-width: 100%; display: block; }
   .row__cat { display: none; }
   .row time { font-size: 11px; }
   .pager { grid-template-columns: 1fr; }
-  .pager__item--prev { text-align: left; }
-  .pager__item--prev strong { direction: ltr; }
+  .pager__item--next { text-align: left; }
   .footer__inner { grid-template-columns: 1fr; gap: 26px; }
   .footer__bottom { flex-direction: column; gap: 6px; }
   .copy { opacity: 1; }
