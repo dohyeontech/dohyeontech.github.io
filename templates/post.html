@@ -1,0 +1,47 @@
+<article class="post wrap">
+  <nav class="crumbs" aria-label="위치"><a href="/">홈</a><span>/</span><a href="/archive/">아카이브</a><span>/</span><span class="crumbs__here">{{CATEGORY}}</span></nav>
+
+  <header class="post__head">
+    <div class="post__meta">
+      <span class="badge">{{CATEGORY}}</span>
+      <time datetime="{{DATE}}">{{DATE_LONG}}</time>
+      <span class="post__reading">{{READING}}분 읽기</span>
+    </div>
+    <h1 class="post__title">{{TITLE}}</h1>
+    <p class="post__summary">{{SUMMARY}}</p>
+    <div class="post__byline">
+      <span class="post__author">{{AUTHOR}}</span>
+      <span class="post__tags">{{TAGS}}</span>
+    </div>
+  </header>
+
+  <figure class="post__hero">
+    <img src="{{THUMBNAIL}}" alt="{{TITLE}}" width="1200" height="675">
+  </figure>
+
+  <div class="post__body">
+{{BODY}}
+  </div>
+
+  <div class="post__foot">
+    <div class="post__tags post__tags--foot">{{TAGS}}</div>
+    <p class="post__note">이 리포트는 공개된 연구·공지·패치 자료를 근거로 작성되었습니다. 인용된 침해 지표는 해당 벤더와 연구기관의 발표 시점 기준입니다.</p>
+  </div>
+
+{{PAGER}}
+</article>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "{{TITLE_JSON}}",
+  "description": "{{SUMMARY_JSON}}",
+  "datePublished": "{{DATE}}",
+  "dateModified": "{{DATE}}",
+  "image": "{{SITE_URL}}{{THUMBNAIL}}",
+  "author": {"@type": "Person", "name": "{{AUTHOR}}"},
+  "publisher": {"@type": "Organization", "name": "DOHYEON TECH BRIEF"},
+  "mainEntityOfPage": "{{CANONICAL_POST}}",
+  "inLanguage": "ko"
+}
+</script>
