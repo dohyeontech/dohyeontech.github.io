@@ -1,6 +1,7 @@
 ---
 title: "[긴급 분석] Xen Orchestra 이중 제로데이 사태와 관리자 권한 우회 원리 (VSA-2026-062)"
 slug: xen-orchestra-vsa-2026-062
+time: "11:49"
 date: "2026-11-12"
 category: "가상화"
 tags: ["XenOrchestra", "VSA-2026-062", "가상화", "제로데이"]

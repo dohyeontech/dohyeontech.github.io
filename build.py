@@ -228,6 +228,7 @@ def load_posts():
             'slug': slug,
             'title': meta.get('title', slug),
             'date': date,
+            'time': meta.get('time', '00:00'),
             'category': meta.get('category', '분석'),
             'tags': tags,
             'thumbnail': meta.get('thumbnail', ''),
@@ -239,7 +240,7 @@ def load_posts():
             'file': fn,
             'reading': max(1, round(len(re.sub(r'[^\w\s]', '', body)) / 500)),
         })
-    posts.sort(key=lambda p: (p['date'], p['slug']), reverse=True)
+    posts.sort(key=lambda p: (p['date'], p.get('time', '00:00')), reverse=True)
     return posts
 
 
