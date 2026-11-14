@@ -32,6 +32,8 @@ body {
   line-height: 1.7;
   -webkit-font-smoothing: antialiased;
   text-rendering: optimizeLegibility;
+  word-break: keep-all;
+  overflow-wrap: break-word;
 }
 
 /* subtle top glow, no neon */
@@ -397,7 +399,7 @@ img { max-width: 100%; display: block; }
 }
 
 .post__body strong { color: #f2f7fb; font-weight: 700; }
-.post__body em { color: var(--text); font-style: normal; border-bottom: 1px dotted #56687c; }
+.post__body em { color: #f0f6fb; font-style: normal; }
 
 .post__body a {
   color: var(--blue);
