@@ -319,7 +319,7 @@ def main():
     nav_active = {}
 
     def page(path, title, description, content, active='', extra_head='', canonical=None, og_image=None):
-        if title in ('홈', '아카이브', '소개'):
+        if title == '홈':
             full_title = '%s — 사이버보안 · AI 엔지니어링 저널' % SITE['name']
         else:
             full_title = '%s — %s' % (title, SITE['name'])
