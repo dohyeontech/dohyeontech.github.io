@@ -22,6 +22,8 @@ import urllib.request
 import urllib.error
 
 REPO = 'dohyeontech/dohyeontech.github.io'
+SITE = 'https://dohyeontech.github.io'
+INDEXNOW_KEY = 'b53ff27590364a6e9d68824be2be0975'
 BRANCH = 'main'
 AUTHOR = {'name': 'Kim Dohyeon', 'email': 'dohyeon.tech@proton.me'}
 ROOT = os.path.dirname(os.path.abspath(__file__))
@@ -63,6 +65,35 @@ def api(method, path, payload=None):
         if e.code == 404 or (e.code == 409 and 'empty' in body.lower()):
             return {'_status': 404}
         raise SystemExit('GitHub API %s %s -> %s %s' % (method, path, e.code, body[:400]))
+
+
+def indexnow(paths):
+    """Bing/IndexNow 즉시 색인 요청 (실패해도 발행은 끝난 상태로 둔다)."""
+    urls = set()
+    for p in paths:
+        if p == 'index.html':
+            urls.add(SITE + '/')
+        elif p.endswith('/index.html'):
+            urls.add('%s/%s/' % (SITE, p[:-len('/index.html')]))
+        elif p == 'sitemap.xml':
+            urls.add(SITE + '/sitemap.xml')
+    if not urls:
+        return
+    payload = {
+        'host': 'dohyeontech.github.io',
+        'key': INDEXNOW_KEY,
+        'keyLocation': '%s/%s.txt' % (SITE, INDEXNOW_KEY),
+        'urlList': sorted(urls),
+    }
+    req = urllib.request.Request(
+        'https://api.indexnow.org/indexnow',
+        data=json.dumps(payload).encode(), method='POST')
+    req.add_header('Content-Type', 'application/json; charset=utf-8')
+    try:
+        with urllib.request.urlopen(req, timeout=20) as r:
+            print('indexnow: %s (%d urls)' % (r.status, len(urls)))
+    except Exception as e:
+        print('indexnow skipped: %s' % e)
 
 
 def blob_sha(data):
@@ -151,6 +182,7 @@ def main():
 
     print('pushed %d changed, %d removed -> %s' % (added, removed, commit['sha'][:7]))
     print('https://github.com/%s/commit/%s' % (REPO, commit['sha']))
+    indexnow([e['path'] for e in entries])
 
 
 if __name__ == '__main__':
