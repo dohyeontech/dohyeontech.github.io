@@ -12,6 +12,7 @@ No third-party dependencies. Add a Markdown file to posts/, run this, push.
 
 import os
 import re
+import hashlib
 import sys
 import html
 import json
@@ -268,9 +269,26 @@ def rfc822(d):
     return dt.strftime('%a, %d %b %Y 00:00:00 +0900')
 
 
+ASSET_VER = {}
+
+
+def av(path):
+    """'/assets/css/style.css' -> '/assets/css/style.css?v=ab12cd34' (캐시 무효화)"""
+    if path in ASSET_VER:
+        return ASSET_VER[path]
+    full = os.path.join(ROOT, path.lstrip('/'))
+    try:
+        with open(full, 'rb') as f:
+            h = hashlib.md5(f.read()).hexdigest()[:8]
+    except OSError:
+        h = ''
+    ASSET_VER[path] = path + ('?v=' + h if h else '')
+    return ASSET_VER[path]
+
+
 def card(p, featured=False):
     cls = 'card card--featured' if featured else 'card'
-    thumb = p['thumbnail'] or '/assets/images/placeholder.png'
+    thumb = av(p['thumbnail']) if p['thumbnail'] else '/assets/images/og-default.png'
     return fill(
         '<article class="%(cls)s">'
         '<a class="card__link" href="/posts/%(slug)s/">'
@@ -322,6 +340,8 @@ def main():
             'og_image': og_image or (SITE['url'] + '/assets/images/og-default.png'),
             'extra_head': extra_head,
             'site_url': SITE['url'],
+            'css': av('/assets/css/style.css'),
+            'js': av('/assets/js/main.js'),
         }
         write(path, fill(base, ctx))
 
@@ -365,7 +385,7 @@ def main():
             'date_long': long_date(p['date']),
             'author': esc(p['author']),
             'reading': p['reading'],
-            'thumbnail': p['thumbnail'],
+            'thumbnail': av(p['thumbnail']) if p['thumbnail'] else '',
             'summary': esc(p['summary']),
             'body': p['body_html'],
             'tags': tags_html,
@@ -404,7 +424,7 @@ def main():
         'year': datetime.date.today().year, 'author': SITE['author'], 'email': SITE['email'],
         'canonical': SITE['url'] + '/', 'og_image': SITE['url'] + '/assets/images/og-default.png',
         'extra_head': '', 'full_title': '페이지를 찾을 수 없습니다 — ' + SITE['name'],
-        'site_url': SITE['url'],
+        'site_url': SITE['url'], 'css': av('/assets/css/style.css'), 'js': av('/assets/js/main.js'),
     }))
 
     # ---- feed.xml
