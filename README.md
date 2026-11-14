@@ -70,4 +70,5 @@ python3 build.py                       # 또는 아래 한 줄로 빌드까지 �
 - 바뀐 파일만 업로드하고, 작업 트리에서 지운 파일은 저장소에서도 지운다. 변경이 없으면 아무것도 하지 않고 `no changes`만 출력한다.
 - 이 환경에서는 `git push`가 런타임 정책으로 막혀 있어 REST API로 커밋한다. 커밋 author는 항상 `Kim Dohyeon <dohyeon.tech@proton.me>`.
 - 새 글 썸네일이 필요하면 `scripts/generate_blog_thumbnails.py` 스타일(1200x675, 다크 슬레이트)로 만들어 `assets/images/`에 넣고 front matter `thumbnail`에 경로를 적는다.
+- 푸시가 끝나면 바뀐 글 URL을 IndexNow(api.indexnow.org)로 자동 통보한다. 검색엔진이 수 분 내로 다시 크롤한다. 키 파일은 루트 `b53ff27590364a6e9d68824be2be0975.txt`.
 - 배포 반영은 푸시 후 30~60초. 확인: `curl -s -o /dev/null -w "%{http_code}" https://dohyeontech.github.io/`
