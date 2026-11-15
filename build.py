@@ -319,6 +319,13 @@ def card(p, featured=False):
         }, {})
 
 
+def absolutize(html_text):
+    """피드 리더가 상대경로를 못 풀는 경우를 막기 위해 /... 절대경로를 사이트 URL로 바꾼다."""
+    return re.sub(r'(src|href)="(/(?!/)[^"]*)"',
+                  lambda m: '%s="%s%s"' % (m.group(1), SITE['url'], m.group(2)),
+                  html_text)
+
+
 def subscribe_block(where=''):
     """RSS + JSON Feed 구독 박스. 포스트 하단과 /about/에서 같은 마크업을 쓴다."""
     import urllib.parse
@@ -547,7 +554,7 @@ def main():
             'url': link,
             'title': p['title'],
             'summary': p['summary'],
-            'content_html': p['body_html'],
+            'content_html': absolutize(p['body_html']),
             'date_published': stamp,
             'authors': [{'name': p['author']}],
             'tags': p['tags'],
