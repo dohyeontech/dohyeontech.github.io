@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다 — 도현의 테크브리프</title>
-<meta name="description" content="Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다.">
+<meta name="description" content="추론 벤더 키 하나가 읽기 전용 버킷의 미마스킹 자격증명을 거쳐, 마켓플레이스 캐시에 악성 Claude Code 빌드를 써넣는 권한까지 도달했다. 11시간 노출 창, 최대 5,000명의 개발자.">
 <link rel="canonical" href="https://dohyeontech.github.io/posts/cursor-fireworks-supply-chain/">
 <meta name="author" content="김도현">
 <meta name="msvalidate.01" content="7F649621B27074264CFFB0DCE372E1A9">
@@ -12,13 +12,13 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="도현의 테크브리프">
 <meta property="og:title" content="[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다 — 도현의 테크브리프">
-<meta property="og:description" content="Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다.">
+<meta property="og:description" content="추론 벤더 키 하나가 읽기 전용 버킷의 미마스킹 자격증명을 거쳐, 마켓플레이스 캐시에 악성 Claude Code 빌드를 써넣는 권한까지 도달했다. 11시간 노출 창, 최대 5,000명의 개발자.">
 <meta property="og:url" content="https://dohyeontech.github.io/posts/cursor-fireworks-supply-chain/">
 <meta property="og:image" content="https://dohyeontech.github.io/assets/images/thumb_cursor_fireworks.png">
 <meta property="og:locale" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다 — 도현의 테크브리프">
-<meta name="twitter:description" content="Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다.">
+<meta name="twitter:description" content="추론 벤더 키 하나가 읽기 전용 버킷의 미마스킹 자격증명을 거쳐, 마켓플레이스 캐시에 악성 Claude Code 빌드를 써넣는 권한까지 도달했다. 11시간 노출 창, 최대 5,000명의 개발자.">
 <meta name="twitter:image" content="https://dohyeontech.github.io/assets/images/thumb_cursor_fireworks.png">
 <link rel="icon" href="/assets/images/favicon.png" type="image/png">
 <link rel="apple-touch-icon" href="/assets/images/favicon.png">
@@ -56,7 +56,7 @@
       <span class="post__reading">19분 읽기</span>
     </div>
     <h1 class="post__title">[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다</h1>
-    <p class="post__summary">Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다.</p>
+    <p class="post__summary">추론 벤더 키 하나가 읽기 전용 버킷의 미마스킹 자격증명을 거쳐, 마켓플레이스 캐시에 악성 Claude Code 빌드를 써넣는 권한까지 도달했다. 11시간 노출 창, 최대 5,000명의 개발자.</p>
     <div class="post__byline">
       <span class="post__author">김도현</span>
       <span class="post__tags"><span class="tag">#공급망공격</span><span class="tag">#Cursor</span><span class="tag">#FireworksAI</span><span class="tag">#ClaudeCode</span><span class="tag">#리버스SSH</span><span class="tag">#LLMJacking</span></span>
@@ -170,7 +170,7 @@ SSH 키     ssh-ed25519 ... svc-telemetry
   "@context": "https://schema.org",
   "@type": "BlogPosting",
   "headline": ""[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다"",
-  "description": ""Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다."",
+  "description": ""추론 벤더 키 하나가 읽기 전용 버킷의 미마스킹 자격증명을 거쳐, 마켓플레이스 캐시에 악성 Claude Code 빌드를 써넣는 권한까지 도달했다. 11시간 노출 창, 최대 5,000명의 개발자."",
   "datePublished": "2026-11-15",
   "dateModified": "2026-11-15",
   "image": "https://dohyeontech.github.io/assets/images/thumb_cursor_fireworks.png?v=b7de5bbf",

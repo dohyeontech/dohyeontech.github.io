@@ -6,7 +6,7 @@ date: "2026-11-15"
 category: "공급망 공격"
 tags: ["공급망공격", "Cursor", "FireworksAI", "ClaudeCode", "리버스SSH", "LLMJacking"]
 thumbnail: /assets/images/thumb_cursor_fireworks.png
-summary: "Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다."
+summary: "추론 벤더 키 하나가 읽기 전용 버킷의 미마스킹 자격증명을 거쳐, 마켓플레이스 캐시에 악성 Claude Code 빌드를 써넣는 권한까지 도달했다. 11시간 노출 창, 최대 5,000명의 개발자."
 author: "김도현"
 ---
 
