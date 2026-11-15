@@ -530,7 +530,7 @@ def main():
             '<atom:link href="%s/feed.xml" rel="self" type="application/rss+xml"/>\n'
             '%s\n</channel>\n</rss>\n') % (
         esc(SITE['name']), SITE['url'], esc(SITE['desc']),
-        (datetime.datetime.utcnow() + datetime.timedelta(hours=9)).strftime('%a, %d %b %Y %H:%M:%S +0900'),
+        (datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(hours=9)).strftime('%a, %d %b %Y %H:%M:%S +0900'),
         SITE['url'], '\n'.join(items))
     write('feed.xml', feed)
 
