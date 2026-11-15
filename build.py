@@ -38,11 +38,11 @@ SITE = {
 # 지갑 주소가 준비되면 아래 값만 채우고 다시 배포하면 포스트 하단과 /about/에 후원 블록이 켜진다.
 # 빈 문자열이면 블록 자체를 렌더하지 않는다 — 가짜 주소는 절대 넣지 않는다.
 TIP_WALLETS = [
-    # ('BTC (Bitcoin)', ''),
-    # ('ETH (ERC-20)', ''),
-    # ('USDT (TRC-20)', ''),
+    ('BTC (Bitcoin · Native SegWit)', 'bc1qlug0gunjlm84suekyz5wu6c8uu4zml0zvyjmnv'),
+    ('ETH / USDT / USDC (ERC-20 · Base · Arbitrum)', '0x1f84BB57A4aFdD3FD92362516C3c9E6626968E0F'),
 ]
-TIP_NOTE = ''
+TIP_NOTE = ('ETH · USDT · USDC는 ERC-20 계열 네트워크(Ethereum · Base · Arbitrum 등)에서만 보내 주세요. '
+            '다른 네트워크로 보낸 자산은 복구되지 않습니다.')
 
 SUBSCRIBE_MAIL_SUBJECT = '구독 신청'
 SUBSCRIBE_MAIL_BODY = '이 주소로 도현의 테크브리프 새 글 알림을 받고 싶습니다.'
