@@ -492,7 +492,9 @@ img { max-width: 100%; display: block; }
   border-collapse: collapse;
   width: 100%;
   font-size: 14px;
+  word-break: keep-all;
 }
+.post__body th:first-child, .post__body td:first-child { white-space: nowrap; }
 .post__body th, .post__body td {
   border: 1px solid var(--border);
   padding: 10px 13px;
