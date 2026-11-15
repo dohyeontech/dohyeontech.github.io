@@ -122,18 +122,30 @@
 <p>이름이 <code>SysMon</code>, <code>com.apple.sysmond</code>인 것은 의도적이다. 관리자가 프로세스 목록에서 봤을 때 시스템 모니터링으로 보이게 만든 위장이고, Microsoft는 같은 이유로 "이름만으로 악성 여부를 판단하지 말고 각 시작 개체의 실행 내용을 확인하라"고 권고한다.</p>
 <p>성공과 실패를 구분해서 읽어야 한다. 역방향 터널이 열리려면 피해자 호스트의 SSH 서비스가 켜져 있어야 하고(<code>systemsetup -setremotelogin on</code>, <code>Add-WindowsCapability ... OpenSSH.Server</code> 시도), 그건 관리자 권한을 요구한다. Cursor는 코드 자체의 오류와 권한 요구 때문에 대부분의 macOS·Windows 호스트에서 이 단계가 실패했다고 밝혔다. 하지만 실패한 것은 <strong>터널</strong>이지 <strong>침해</strong>가 아니다. 공격자 공개키는 이미 <code>authorized_keys</code>에 들어갔고, 지속성 스크립트는 확장 디렉터리 밖에 남았고, 호스트 정보는 전송됐다. 서버가 내려간 지금도 그 키와 스크립트는 로컬에 그대로 있을 수 있다.</p>
 <div class="codeblock"><pre><code># Cursor 공지가 공개한 침해 지표 (2026-10-29 노출분)
-패키지      Anthropic.claude-code 2.1.312 / 2.1.313 (darwin-arm64, win32-x64)
-VSIX SHA256 fcbb327e38e61c4fec795e0d0591f52cd1014b813d20a5912104953c3a17c364  (2.1.312 / darwin)
-            3de1722901165769893bef57c72594e9a54459faa23f3091b136b79966edd081  (2.1.312 / win32)
-            80402fdcad8799285fd93044976973ca000da7995fb93363f819bb8e4f84ee6c  (2.1.313 / darwin)
-            6786ec90cbd45949695bd7805c9fbb26cfc91bc5fc897de0183d9bcb9cb21731  (2.1.313 / win32)
-extension.js SHA256 ecb58cb29078d9646ad1dcdbe51526f2d9cfea06be5fb2ab183e8ecc3ab6bf15
-네트워크     134[.]209[.]82[.]225  (22/tcp 터널, 8099/tcp beacon)
-             hxxp://134[.]209[.]82[.]225:8099/beacon, 127[.]0[.]0[.]1:8099/beacon
-SSH 키       ssh-ed25519 ...svc-telemetry  지문 SHA256:0Z6R+DF64Do2nwQic8a7kkfDLNNk4IiK+2U2Rci4htk
-파일          ~/.config/.smt, ~/.config/.smtk, .stk_&lt;10 hex&gt;, smt.cmd, sysmon.cmd
-시작 개체     com.apple.sysmond(LaunchAgent), SysMon(예약 작업), Startup\sysmon.cmd
-프로세스      ssh -N -R '*:0:localhost:22', autossh -M 0</code></pre><button class="copy" type="button" aria-label="코드 복사">COPY</button></div>
+패키지     Anthropic.claude-code 2.1.312 / 2.1.313
+          darwin-arm64, win32-x64
+
+VSIX 2.1.312 darwin-arm64
+  fcbb327e38e61c4fec795e0d0591f52cd1014b813d20a5912104953c3a17c364
+VSIX 2.1.312 win32-x64
+  3de1722901165769893bef57c72594e9a54459faa23f3091b136b79966edd081
+VSIX 2.1.313 darwin-arm64
+  80402fdcad8799285fd93044976973ca000da7995fb93363f819bb8e4f84ee6c
+VSIX 2.1.313 win32-x64
+  6786ec90cbd45949695bd7805c9fbb26cfc91bc5fc897de0183d9bcb9cb21731
+extension.js
+  ecb58cb29078d9646ad1dcdbe51526f2d9cfea06be5fb2ab183e8ecc3ab6bf15
+
+네트워크   134[.]209[.]82[.]225  (22/tcp 터널, 8099/tcp beacon)
+           hxxp://134[.]209[.]82[.]225:8099/beacon
+           127[.]0[.]0[.]1:8099/beacon
+SSH 키     ssh-ed25519 ... svc-telemetry
+           SHA256:0Z6R+DF64Do2nwQic8a7kkfDLNNk4IiK+2U2Rci4htk
+파일       ~/.config/.smt, ~/.config/.smtk, .stk_&lt;10 hex&gt;
+           smt.cmd, sysmon.cmd
+시작 개체  com.apple.sysmond(LaunchAgent), SysMon(예약 작업)
+           Startup\sysmon.cmd
+프로세스   ssh -N -R '*:0:localhost:22', autossh -M 0</code></pre><button class="copy" type="button" aria-label="코드 복사">COPY</button></div>
 <h2>4. 제거와 재설계: 호스트에서 확인할 것, 플랫폼이 분리해야 할 것</h2>
 <p><strong>호스트 점검.</strong> 가장 빠른 판별은 <code>authorized_keys</code>의 표식이다. macOS·Linux는 <code>grep -qs svc-telemetry ~/.ssh/authorized_keys</code>, Windows는 <code>%USERPROFILE%\.ssh\authorized_keys</code>와 <code>C:\ProgramData\ssh\administrators_authorized_keys</code>를 함께 본다. 키가 없더라도 확장 설치 기록, <code>.stk_</code> 파일, 시작 개체를 별도로 확인해야 한다. Microsoft는 이름이 같은 정상 모니터링 소프트웨어가 있을 수 있으므로 시작 개체의 <strong>실행 내용</strong>을 확인하고, 키를 지울 때도 지문을 대조해 정확히 그 항목만 제거하면서 정상 SSH 키와 원격 개발 설정을 보존하라고 권고한다.</p>
 <p><strong>제거 순서.</strong> 확장 삭제가 첫 단계가 되면 안 된다. 증거 보존 → 호스트 격리 → 공격자 키·터널 프로세스·지속성 개체·확장 제거 → 신뢰할 수 있는 다른 시스템에서 자격증명 회전과 세션 폐기 → 재구축 여부 판단 순이다. 노출 창 동안 그 호스트에 있던 토큰·쿠키·SSH 키는 "이름만 수집됐다"는 이유로 안전하다고 볼 수 없다. 터널이 열리지 않았더라도 로컬 코드 실행은 성립했고, 그 코드는 임의 명령을 실행할 능력을 가졌다. Cursor의 조사 스크립트와 제거 스크립트는 공지에 첨부돼 있으니 실행 전에 내용을 확인하고, 실행 후에도 나열된 아티팩트가 남지 않았는지 다시 검증해야 한다.</p>

@@ -102,18 +102,30 @@ ssh -N -R '*:0:localhost:22' \
 
 ```
 # Cursor 공지가 공개한 침해 지표 (2026-10-29 노출분)
-패키지      Anthropic.claude-code 2.1.312 / 2.1.313 (darwin-arm64, win32-x64)
-VSIX SHA256 fcbb327e38e61c4fec795e0d0591f52cd1014b813d20a5912104953c3a17c364  (2.1.312 / darwin)
-            3de1722901165769893bef57c72594e9a54459faa23f3091b136b79966edd081  (2.1.312 / win32)
-            80402fdcad8799285fd93044976973ca000da7995fb93363f819bb8e4f84ee6c  (2.1.313 / darwin)
-            6786ec90cbd45949695bd7805c9fbb26cfc91bc5fc897de0183d9bcb9cb21731  (2.1.313 / win32)
-extension.js SHA256 ecb58cb29078d9646ad1dcdbe51526f2d9cfea06be5fb2ab183e8ecc3ab6bf15
-네트워크     134[.]209[.]82[.]225  (22/tcp 터널, 8099/tcp beacon)
-             hxxp://134[.]209[.]82[.]225:8099/beacon, 127[.]0[.]0[.]1:8099/beacon
-SSH 키       ssh-ed25519 ...svc-telemetry  지문 SHA256:0Z6R+DF64Do2nwQic8a7kkfDLNNk4IiK+2U2Rci4htk
-파일          ~/.config/.smt, ~/.config/.smtk, .stk_<10 hex>, smt.cmd, sysmon.cmd
-시작 개체     com.apple.sysmond(LaunchAgent), SysMon(예약 작업), Startup\sysmon.cmd
-프로세스      ssh -N -R '*:0:localhost:22', autossh -M 0
+패키지     Anthropic.claude-code 2.1.312 / 2.1.313
+          darwin-arm64, win32-x64
+
+VSIX 2.1.312 darwin-arm64
+  fcbb327e38e61c4fec795e0d0591f52cd1014b813d20a5912104953c3a17c364
+VSIX 2.1.312 win32-x64
+  3de1722901165769893bef57c72594e9a54459faa23f3091b136b79966edd081
+VSIX 2.1.313 darwin-arm64
+  80402fdcad8799285fd93044976973ca000da7995fb93363f819bb8e4f84ee6c
+VSIX 2.1.313 win32-x64
+  6786ec90cbd45949695bd7805c9fbb26cfc91bc5fc897de0183d9bcb9cb21731
+extension.js
+  ecb58cb29078d9646ad1dcdbe51526f2d9cfea06be5fb2ab183e8ecc3ab6bf15
+
+네트워크   134[.]209[.]82[.]225  (22/tcp 터널, 8099/tcp beacon)
+           hxxp://134[.]209[.]82[.]225:8099/beacon
+           127[.]0[.]0[.]1:8099/beacon
+SSH 키     ssh-ed25519 ... svc-telemetry
+           SHA256:0Z6R+DF64Do2nwQic8a7kkfDLNNk4IiK+2U2Rci4htk
+파일       ~/.config/.smt, ~/.config/.smtk, .stk_<10 hex>
+           smt.cmd, sysmon.cmd
+시작 개체  com.apple.sysmond(LaunchAgent), SysMon(예약 작업)
+           Startup\sysmon.cmd
+프로세스   ssh -N -R '*:0:localhost:22', autossh -M 0
 ```
 
 ## 4. 제거와 재설계: 호스트에서 확인할 것, 플랫폼이 분리해야 할 것
