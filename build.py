@@ -34,6 +34,19 @@ SITE = {
     'lang': 'ko',
 }
 
+# ---------------------------------------------------------------- 후원(Crypto Tip) 설정
+# 지갑 주소가 준비되면 아래 값만 채우고 다시 배포하면 포스트 하단과 /about/에 후원 블록이 켜진다.
+# 빈 문자열이면 블록 자체를 렌더하지 않는다 — 가짜 주소는 절대 넣지 않는다.
+TIP_WALLETS = [
+    # ('BTC (Bitcoin)', ''),
+    # ('ETH (ERC-20)', ''),
+    # ('USDT (TRC-20)', ''),
+]
+TIP_NOTE = ''
+
+SUBSCRIBE_MAIL_SUBJECT = '구독 신청'
+SUBSCRIBE_MAIL_BODY = '이 주소로 도현의 테크브리프 새 글 알림을 받고 싶습니다.'
+
 
 # ---------------------------------------------------------------- front matter
 def parse_front_matter(text):
@@ -236,6 +249,7 @@ def load_posts():
             'summary': meta.get('summary', ''),
             'author': meta.get('author', SITE['author']),
             'original': meta.get('original', ''),
+            'seo_title': meta.get('seo_title', ''),
             'body_md': body,
             'body_html': render_md(body),
             'file': fn,
@@ -305,6 +319,57 @@ def card(p, featured=False):
         }, {})
 
 
+def subscribe_block(where=''):
+    """RSS + JSON Feed 구독 박스. 포스트 하단과 /about/에서 같은 마크업을 쓴다."""
+    import urllib.parse
+    mail = 'mailto:%s?subject=%s&body=%s' % (
+        SITE['email'],
+        urllib.parse.quote(SUBSCRIBE_MAIL_SUBJECT),
+        urllib.parse.quote(SUBSCRIBE_MAIL_BODY),
+    )
+    anchor = ' id="subscribe"' if where == 'about' else ''
+    return (
+        '<aside class="subscribe"%s>'
+        '<div class="subscribe__copy">'
+        '<div class="subscribe__label">SUBSCRIBE</div>'
+        '<h2 class="subscribe__title">새 리포트를 받아보세요</h2>'
+        '<p class="subscribe__desc">RSS 리더기나 JSON 피드를 읽는 앱에 주소를 넣으면 새 글이 발행될 때마다 자동으로 들어옵니다. '
+        '메일 알림을 원하시면 아래 구독 신청을 눌러 한 통만 보내주세요.</p>'
+        '</div>'
+        '<div class="subscribe__actions">'
+        '<a class="subbtn" href="/feed.xml">'
+        '<span class="subbtn__k">RSS</span><span class="subbtn__v">/feed.xml</span></a>'
+        '<a class="subbtn" href="/feed.json">'
+        '<span class="subbtn__k">JSON FEED</span><span class="subbtn__v">/feed.json</span></a>'
+        '<a class="subbtn subbtn--mail" href="%s">'
+        '<span class="subbtn__k">EMAIL</span><span class="subbtn__v">구독 신청 메일</span></a>'
+        '</div>'
+        '<p class="subscribe__note">보내주신 주소는 알림 발송에만 쓰고 공개하지 않습니다. 언제든 한 통으로 해지됩니다.</p>'
+        '</aside>' % (anchor, mail)
+    )
+
+
+def tip_block():
+    """후원 지갑이 설정된 경우에만 렌더한다. TIP_WALLETS가 비어 있으면 빈 문자열."""
+    rows = [(label, addr.strip()) for label, addr in TIP_WALLETS if addr and addr.strip()]
+    if not rows:
+        return ''
+    items = ''.join(
+        '<div class="tip__row"><span class="tip__k">%s</span>'
+        '<code class="tip__addr" data-addr="%s">%s</code>'
+        '<button class="tip__copy" type="button" data-copy="%s">COPY</button></div>'
+        % (esc(label), esc(addr), esc(addr), esc(addr))
+        for label, addr in rows)
+    note = '<p class="tip__note">%s</p>' % esc(TIP_NOTE) if TIP_NOTE else ''
+    return (
+        '<aside class="tip">'
+        '<div class="subscribe__label">SUPPORT</div>'
+        '<h2 class="tip__title">리포트가 도움이 됐다면</h2>'
+        '<p class="tip__desc">광고 없이 운영합니다. 후원은 아래 지갑 주소로만 받고, 받은 내역을 조건으로 한 대가성 홍보는 넣지 않습니다.</p>'
+        '%s%s</aside>' % (items, note)
+    )
+
+
 def write(path, content):
     full = os.path.join(ROOT, path)
     os.makedirs(os.path.dirname(full) or '.', exist_ok=True)
@@ -318,8 +383,11 @@ def main():
     base = tpl('base.html')
     nav_active = {}
 
-    def page(path, title, description, content, active='', extra_head='', canonical=None, og_image=None):
-        if title == '홈':
+    def page(path, title, description, content, active='', extra_head='', canonical=None, og_image=None,
+             title_raw=None, og_type='website', og_title=None):
+        if title_raw:
+            full_title = title_raw
+        elif title == '홈':
             full_title = '%s — 사이버보안 · AI 엔지니어링 저널' % SITE['name']
         else:
             full_title = '%s — %s' % (title, SITE['name'])
@@ -337,9 +405,11 @@ def main():
             'author': SITE['author'],
             'email': SITE['email'],
             'canonical': canonical or (SITE['url'] + '/' + path.replace('index.html', '')),
+            'og_title': esc(og_title or full_title),
             'og_image': og_image or (SITE['url'] + '/assets/images/og-default.png'),
             'extra_head': extra_head,
             'site_url': SITE['url'],
+            'og_type': og_type,
             'css': av('/assets/css/style.css'),
             'js': av('/assets/js/main.js'),
         }
@@ -359,7 +429,8 @@ def main():
     )
     page('index.html', '홈', SITE['desc'],
          fill(tpl('index.html'), {'lead_and_grid': home_inner}),
-         'home', og_image=(SITE['url'] + lead['thumbnail']) if lead['thumbnail'] else '')
+         'home', og_image=(SITE['url'] + lead['thumbnail']) if lead['thumbnail'] else '',
+         title_raw='%s — 사이버보안 · AI 엔지니어링 저널' % SITE['name'])
 
     # ---- posts
     post_tpl = tpl('post.html')
@@ -390,15 +461,27 @@ def main():
             'body': p['body_html'],
             'tags': tags_html,
             'pager': pager,
+            'subscribe': subscribe_block(),
+            'tip': tip_block(),
             'canonical_post': '%s/posts/%s/' % (SITE['url'], p['slug']),
             'site_url': SITE['url'],
             'title_json': json.dumps(p['title'], ensure_ascii=False).replace('</', '<\\/'),
             'summary_json': json.dumps(p['summary'], ensure_ascii=False).replace('</', '<\\/'),
         })
         desc = p['summary'] or SITE['desc']
+        # 검색엔진 <title>은 60자 이내로 유지한다 (Bing "Title too long" 대응).
+        # 사이트명은 og:site_name에 이미 있으므로 포스트 페이지 제목에는 붙이지 않는다.
+        head_title = p['seo_title'] or p['title']
+        if len(head_title) > 60:
+            stripped = re.sub(r'^\[[^\]]{1,12}\]\s*', '', head_title)
+            if len(stripped) <= 60:
+                head_title = stripped   # 앞쪽 [침해 분석] 같은 머리표만 덜어낸다 (카테고리는 뱃지에 있음)
+            else:
+                head_title = stripped[:57].rstrip() + '…'
         page('posts/%s/index.html' % p['slug'], p['title'], desc, article, '',
              canonical='%s/posts/%s/' % (SITE['url'], p['slug']),
-             og_image=(SITE['url'] + p['thumbnail']) if p['thumbnail'] else '')
+             og_image=(SITE['url'] + p['thumbnail']) if p['thumbnail'] else '',
+             title_raw=head_title, og_type='article', og_title=p['title'])
 
     # ---- archive
     rows = []
@@ -414,7 +497,9 @@ def main():
 
     # ---- about
     page('about/index.html', '소개', 'DOHYEON TECH BRIEF 소개와 운영 원칙.',
-         fill(tpl('about.html'), {'count': len(posts)}), '')
+         fill(tpl('about.html'), {'count': len(posts),
+                                  'subscribe': subscribe_block('about'),
+                                  'tip': tip_block()}), '')
 
     # ---- 404
     write('404.html', fill(base, {
@@ -448,6 +533,40 @@ def main():
         SITE['url'], '\n'.join(items))
     write('feed.xml', feed)
 
+    # ---- feed.json (JSON Feed 1.1)
+    jitems = []
+    for p in posts:
+        link = '%s/posts/%s/' % (SITE['url'], p['slug'])
+        try:
+            stamp = '%sT%s:00+09:00' % (p['date'], p.get('time') or '00:00')
+        except (TypeError, ValueError):
+            stamp = '%sT00:00:00+09:00' % p['date']
+        item = {
+            'id': link,
+            'url': link,
+            'title': p['title'],
+            'summary': p['summary'],
+            'content_html': p['body_html'],
+            'date_published': stamp,
+            'authors': [{'name': p['author']}],
+            'tags': p['tags'],
+        }
+        if p['thumbnail']:
+            item['image'] = SITE['url'] + p['thumbnail']
+        jitems.append(item)
+    jfeed = {
+        'version': 'https://jsonfeed.org/version/1.1',
+        'title': SITE['name'],
+        'home_page_url': SITE['url'] + '/',
+        'feed_url': SITE['url'] + '/feed.json',
+        'description': SITE['desc'],
+        'language': SITE['lang'],
+        'icon': SITE['url'] + '/assets/images/favicon.png',
+        'authors': [{'name': SITE['author'], 'url': SITE['url'] + '/about/'}],
+        'items': jitems,
+    }
+    write('feed.json', json.dumps(jfeed, ensure_ascii=False, indent=2) + '\n')
+
     # ---- sitemap.xml
     urls = [('%s/' % SITE['url'], posts[0]['date'], '1.0', 'daily'),
             ('%s/archive/' % SITE['url'], posts[0]['date'], '0.6', 'daily'),
@@ -465,7 +584,6 @@ def main():
     # ---- robots.txt
     write('robots.txt',
           'User-agent: *\nAllow: /\n\nSitemap: %s/sitemap.xml\n' % SITE['url'])
-
     # ---- keep Pages from running Jekyll
     write('.nojekyll', '')
 

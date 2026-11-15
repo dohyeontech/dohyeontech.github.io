@@ -1,5 +1,6 @@
 ---
 title: "[침해 분석] Cursor × Fireworks 공급망 침해 — 추론 벤더 키 하나가 악성 Claude Code 확장 배포 권한까지 넘었다"
+seo_title: "Cursor × Fireworks 공급망 침해 — 악성 Claude Code 확장 배포까지"
 slug: cursor-fireworks-supply-chain
 time: "09:00"
 date: "2026-11-15"
