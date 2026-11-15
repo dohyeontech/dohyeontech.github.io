@@ -275,12 +275,12 @@ def long_date(d):
     return '%d년 %d월 %d일' % (dt.year, dt.month, dt.day)
 
 
-def rfc822(d):
+def rfc822(d, t=None):
     try:
-        dt = datetime.datetime.fromisoformat(d)
+        dt = datetime.datetime.fromisoformat('%sT%s' % (d, t) if t else d)
     except ValueError:
         dt = datetime.datetime(1970, 1, 1)
-    return dt.strftime('%a, %d %b %Y 00:00:00 +0900')
+    return dt.strftime('%a, %d %b %Y %H:%M:%S +0900')
 
 
 ASSET_VER = {}
@@ -521,7 +521,7 @@ def main():
             '<title>%s</title><link>%s</link><guid isPermaLink="true">%s</guid>'
             '<pubDate>%s</pubDate><category>%s</category>'
             '<description>%s</description>'
-            '</item>' % (esc(p['title']), link, link, rfc822(p['date']),
+            '</item>' % (esc(p['title']), link, link, rfc822(p['date'], p.get('time')),
                          esc(p['category']), esc(p['summary'])))
     feed = ('<?xml version="1.0" encoding="UTF-8"?>\n'
             '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">\n<channel>\n'
@@ -529,7 +529,8 @@ def main():
             '<language>ko</language>\n<lastBuildDate>%s</lastBuildDate>\n'
             '<atom:link href="%s/feed.xml" rel="self" type="application/rss+xml"/>\n'
             '%s\n</channel>\n</rss>\n') % (
-        esc(SITE['name']), SITE['url'], esc(SITE['desc']), rfc822(posts[0]['date']),
+        esc(SITE['name']), SITE['url'], esc(SITE['desc']),
+        (datetime.datetime.utcnow() + datetime.timedelta(hours=9)).strftime('%a, %d %b %Y %H:%M:%S +0900'),
         SITE['url'], '\n'.join(items))
     write('feed.xml', feed)
 
