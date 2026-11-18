@@ -5,7 +5,7 @@
 <link>https://dohyeontech.github.io/</link>
 <description>제로데이·공급망 공격·AI 보안을 소스 레벨에서 분석하는 엔지니어링 저널.</description>
 <language>ko</language>
-<lastBuildDate>Thu, 19 Nov 2026 05:08:07 +0900</lastBuildDate>
+<lastBuildDate>Thu, 19 Nov 2026 05:10:32 +0900</lastBuildDate>
 <atom:link href="https://dohyeontech.github.io/feed.xml" rel="self" type="application/rss+xml"/>
 <item><title>[긴급 속보] BerriAI LiteLLM 제로데이 취약점(CVE-2026-40217) 실제 악용 확인… 즉시 패치 권고</title><link>https://dohyeontech.github.io/posts/litellm-cve-2026-40217/</link><guid isPermaLink="true">https://dohyeontech.github.io/posts/litellm-cve-2026-40217/</guid><pubDate>Thu, 19 Nov 2026 05:10:00 +0900</pubDate><category>Security</category><description>LiteLLM 가드레일 테스터의 정규식 34개짜리 샌드박스가 바이트코드 재작성으로 뚫린 CVE-2026-40217이 11월 18일 CISA KEV에 등재됐다. 4월 패치 이후에도 허니팟에는 마스터키 추측과 환경변수 탈취 페이로드가 계속 들어왔고, 연방기관 기한은 12월 2일이다.</description></item>
 <item><title>정상 CDN이 서빙한 악성 코드 — Optimizely projectJS 침해와 19시간의 카드 스키머</title><link>https://dohyeontech.github.io/posts/optimizely-projectjs-supply-chain/</link><guid isPermaLink="true">https://dohyeontech.github.io/posts/optimizely-projectjs-supply-chain/</guid><pubDate>Wed, 18 Nov 2026 09:00:00 +0900</pubDate><category>Security</category><description>1,611개 Optimizely 스니펫 중 188개(178개 조직)의 projectJS 필드에 로더가 심겼다. 파일은 cdn.optimizely.com이 자사 인증서로 서빙했고, 16시간 동안 방문자의 지갑 주소·카드번호·쿠키가 빠져나갔다. CSP를 갖춘 사이트 중 실제로 막아낸 곳은 15%였다.</description></item>
