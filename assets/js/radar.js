@@ -40,6 +40,7 @@
   var REST_SWEEP_MS = 45000;  // 스트림 실패 시 보조 수집 시작 간격
   var UPBIT_GAP = 10000;      // 업비트 교차 출처 REST는 분당 6회 수준이라 호출 사이를 10초 띄운다
   var VOL_FLOOR = 1e8;        // 최고/최저 김프 집계: 24h 거래대금 1억 원
+  var COLLISION_PCT = 30;     // |김프| 30% 초과는 티커 충돌(다른 자산) 의심값으로 본다
 
   var S = {
     markets: null, marketsAt: 0,
@@ -250,13 +251,11 @@
       S.wsState = 'open';
       S.wsAttempts = 0;
       S.wsFallback = false;
+      // 같은 type 구독 요청은 마지막 것만 유효하므로 300종을 한 메시지로 보낸다.
       var codes = S.markets.map(function (m) { return m.code; });
-      for (var i = 0; i < codes.length; i += 100) {
-        var payload = [];
-        if (i === 0) payload.push({ ticket: 'dohyeon-radar' });
-        payload.push({ type: 'ticker', codes: codes.slice(i, i + 100) });
-        try { ws.send(JSON.stringify(payload)); } catch (e) {}
-      }
+      try {
+        ws.send(JSON.stringify([{ ticket: 'dohyeon-radar' }, { type: 'ticker', codes: codes }]));
+      } catch (e) {}
       updateStatus();
       publishDiag();
     };
@@ -304,6 +303,18 @@
     }, wait);
   }
 
+  var PRIORITY = ['BTC', 'ETH', 'XRP', 'USDT', 'SOL', 'DOGE', 'ADA', 'TRX', 'LINK', 'AVAX', 'BCH', 'SUI', 'HYPE', 'ENA', 'XLM', 'DOT'];
+
+  function priorityCodes() {
+    // 주요 코인이 첫 청크에 오도록 앞으로 당긴다 — 첫 요청이 성공하면 요약 카드가 바로 채워진다.
+    var byBase = {};
+    S.markets.forEach(function (m) { byBase[m.base] = m.code; });
+    var head = [];
+    PRIORITY.forEach(function (b) { if (byBase[b]) { head.push(byBase[b]); delete byBase[b]; } });
+    var rest = S.markets.filter(function (m) { return byBase[m.base]; }).map(function (m) { return m.code; });
+    return head.concat(rest);
+  }
+
   function restSweep() {
     if (!S.markets || !S.markets.length) return;
     if (S.sweeping) return;
@@ -311,7 +322,7 @@
     S.sweeping = true;
     S.restSweepAt = Date.now();
 
-    var codes = S.markets.map(function (m) { return m.code; });
+    var codes = priorityCodes();
     var chunks = [];
     for (var i = 0; i < codes.length; i += 100) chunks.push(codes.slice(i, i + 100));
 
@@ -474,9 +485,16 @@
     if (btc) {
       el['btc-prem'].innerHTML = btc.prem == null ? '--' : '<span class="' + signCls(btc.prem) + '">' + pct(btc.prem, 2) + '</span>';
       el['btc-meta'].textContent = fmtKrw(btc.price) + '원 / $' + fmtUsd(btc.binance);
+      if (usdt > 0) {
+        var premT = ((btc.price / (btc.binance * usdt)) - 1) * 100;
+        el['btc-tether'].textContent = '테더 시세 기준 김프 ' + pct(premT, 2);
+      } else {
+        el['btc-tether'].textContent = '테더 시세 기준 김프 --';
+      }
     } else {
       el['btc-prem'].innerHTML = '--';
       el['btc-meta'].textContent = '업비트 -- / 바이낸스 --';
+      el['btc-tether'].textContent = '테더 시세 기준 김프 --';
     }
 
     if (btcFut && isFinite(btcFut.rate)) {
@@ -494,6 +512,7 @@
     for (var j = 0; j < S.rows.length; j++) {
       var r = S.rows[j];
       if (r.prem == null || r.vol < VOL_FLOOR) continue;
+      if (Math.abs(r.prem) >= COLLISION_PCT) continue;   // 같은 티커의 다른 자산으로 보이는 값은 집계에서 뺀다
       if (!top || r.prem > top.prem) top = r;
       if (!low || r.prem < low.prem) low = r;
     }
@@ -528,7 +547,8 @@
       '<th scope="row" class="rt__sym"><span class="sym-kr">' + esc(r.korean) + '</span><span class="sym-code">' + esc(r.base) + '</span></th>' +
       '<td>' + fmtKrw(r.price) + '</td>' +
       '<td>' + fmtUsd(r.binance) + '</td>' +
-      '<td class="' + signCls(r.prem) + '">' + pct(r.prem, 2) + '</td>' +
+      '<td class="' + signCls(r.prem) + '">' + pct(r.prem, 2) +
+        (r.prem != null && Math.abs(r.prem) >= COLLISION_PCT ? '<span class="rt__flag" title="같은 티커의 다른 자산일 수 있습니다">?</span>' : '') + '</td>' +
       '<td>' + (r.funding == null
         ? '<span class="dim">--</span>'
         : '<span class="f-main ' + signCls(r.funding) + '">' + pct(r.funding, 4) + '</span>' +
@@ -575,9 +595,10 @@
       body.innerHTML = html.join('');
     }
 
-    var futures = 0, volSum = 0;
+    var futures = 0, volSum = 0, collisions = 0;
     for (var k = 0; k < S.rows.length; k++) {
       if (S.rows[k].funding != null) futures++;
+      if (S.rows[k].prem != null && Math.abs(S.rows[k].prem) >= COLLISION_PCT) collisions++;
       volSum += S.rows[k].vol;
     }
 
@@ -587,7 +608,8 @@
       S.rows.length + '종을 비교합니다(업비트 단독 상장 ' + S.unmatched + '종 제외). ' +
       '이 중 펀딩비가 확인된 종목은 ' + futures + '종. ' +
       '비교 종목의 업비트 24시간 거래대금 합계는 ' + nf(volSum / 1e8, 0) + '억 원.' +
-      (S.wsFallback ? ' · 업비트 스트림이 막혀 REST 보조 수집(약 40초 주기)으로 표시 중입니다.' : '');
+      (collisions ? ' 김프가 ±' + COLLISION_PCT + '%를 넘는 ' + collisions + '종은 같은 티커의 다른 자산일 수 있어 ?로 표시하고 최고·최저 집계에서 뺐습니다.' : '') +
+      (S.wsFallback ? ' · 업비트 스트림이 막혀 REST 보조 수집으로 표시 중입니다.' : '');
   }
 
   /* ---------------------------------------------------------- status */
@@ -627,7 +649,7 @@
       el['status-text'].textContent = '업비트 스트림 수신 중 · 바이낸스·펀딩 ' + stamp(S.lastPollAt) + ' 갱신';
     } else if (S.wsFallback) {
       el.dot.className = 'dot is-stale';
-      el['status-text'].textContent = '스트림 연결 실패 — REST 보조 수집(60초)으로 표시 중';
+      el['status-text'].textContent = '스트림 연결 실패 — REST 보조 수집으로 표시 중';
     } else if (S.polling && !S.polls) {
       el.dot.className = 'dot is-live';
       el['status-text'].textContent = '거래소 API 연결 중…';
@@ -780,7 +802,7 @@
     el['row-count'] = $('row-count');
     el['status-text'] = $('status-text');
     ['fx-rate', 'fx-meta', 'fx-tether', 'usdt-price', 'usdt-prem', 'btc-prem', 'btc-meta',
-      'btc-funding', 'btc-funding-ann', 'btc-next', 'top-sym', 'top-val', 'low-sym', 'low-val'].forEach(function (id) {
+      'btc-funding', 'btc-funding-ann', 'btc-next', 'btc-tether', 'top-sym', 'top-val', 'low-sym', 'low-val'].forEach(function (id) {
       el[id] = $(id);
     });
 

@@ -233,6 +233,11 @@
 .chg.down { color: var(--down); }
 .chg.flat { color: var(--muted); }
 .dim { color: #5b6877; }
+.rt__flag {
+  display: inline-block; margin-left: 3px; font-size: 9.5px; line-height: 1; color: #b98a5f;
+  border: 1px solid rgba(240, 136, 62, 0.35); border-radius: 3px; padding: 1px 3px; vertical-align: 1px;
+  cursor: help;
+}
 
 .f-main { display: block; }
 .f-ann { display: block; font-size: 10px; color: #6f7d8c; margin-top: 1px; }
