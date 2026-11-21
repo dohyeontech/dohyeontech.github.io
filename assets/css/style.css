@@ -835,6 +835,54 @@ img { max-width: 100%; display: block; }
 .tip__copy:hover, .tip__copy.is-done { color: var(--cyan); border-color: rgba(56, 189, 248, 0.4); }
 .tip__note { margin: 14px 0 0; font-size: 12px; color: #6b7885; }
 
+/* ---------------------------------------------------------- tools strip (home) */
+.toolstrip {
+  margin-top: 34px;
+  padding-top: 22px;
+  border-top: 1px solid var(--border-soft);
+}
+.toolstrip__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  color: #5d6b7a;
+  margin-bottom: 12px;
+}
+.toolstrip__head a { color: var(--muted); }
+.toolstrip__head a:hover { color: var(--cyan); }
+.toolstrip__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+.toolstrip__item {
+  display: block;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: inherit;
+  transition: border-color 0.15s, transform 0.15s;
+}
+.toolstrip__item:hover { color: inherit; border-color: #33445a; transform: translateY(-1px); }
+.toolstrip__item b {
+  display: block;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.toolstrip__item span {
+  display: block;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
 /* ---------------------------------------------------------- responsive */
 @media (max-width: 860px) {
   .card--featured .card__link { grid-template-columns: 1fr; }
@@ -866,6 +914,7 @@ img { max-width: 100%; display: block; }
   .tip { padding: 20px 18px; }
   .tip__row { gap: 2px 8px; }
   .tip__addr { font-size: 12px; }
+  .toolstrip__grid { grid-template-columns: 1fr; }
   .footer__inner { grid-template-columns: 1fr; gap: 26px; }
   .footer__bottom { flex-direction: column; gap: 6px; }
   .copy { opacity: 1; }

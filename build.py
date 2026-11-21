@@ -418,6 +418,7 @@ def main():
             'content': content,
             'nav_home': 'is-active' if active == 'home' else '',
             'nav_archive': 'is-active' if active == 'archive' else '',
+            'nav_tools': 'is-active' if active == 'tools' else '',
             'year': datetime.date.today().year,
             'author': SITE['author'],
             'email': SITE['email'],
@@ -518,11 +519,94 @@ def main():
                                   'subscribe': subscribe_block('about'),
                                   'tip': tip_block()}), '')
 
+    # ---- tools (/tools/ hub + 3 client-side utilities)
+    def ld(obj):
+        return '<script type="application/ld+json">%s</script>' % json.dumps(
+            obj, ensure_ascii=False).replace('</', '<\\/')
+
+    def tool_head(js_paths, ld_objs):
+        parts = ['<link rel="stylesheet" href="%s">' % av('/assets/css/tools.css')]
+        parts += ['<script src="%s" defer></script>' % av(p) for p in js_paths]
+        parts += [ld(o) for o in ld_objs]
+        return '\n'.join(parts)
+
+    def webapp(name, desc, path, features):
+        return {
+            '@context': 'https://schema.org',
+            '@type': 'WebApplication',
+            'name': name,
+            'url': SITE['url'] + path,
+            'description': desc,
+            'applicationCategory': 'SecurityApplication',
+            'operatingSystem': 'Any (web browser)',
+            'browserRequirements': 'JavaScript; runs entirely in the browser, no upload',
+            'isAccessibleForFree': True,
+            'inLanguage': ['ko', 'en'],
+            'featureList': features,
+            'offers': {'@type': 'Offer', 'price': '0', 'priceCurrency': 'KRW'},
+            'publisher': {'@type': 'Organization', 'name': SITE['name'], 'url': SITE['url'] + '/'},
+        }
+
+    def breadcrumbs(trail):
+        return {
+            '@context': 'https://schema.org',
+            '@type': 'BreadcrumbList',
+            'itemListElement': [
+                {'@type': 'ListItem', 'position': i + 1, 'name': n, 'item': SITE['url'] + p}
+                for i, (n, p) in enumerate(trail)
+            ],
+        }
+
+    core_js = ['/assets/js/tools-core.js']
+
+    hub_desc = ('로그·토큰·취약점 점수를 브라우저 안에서만 처리하는 무료 보안 도구 모음입니다. '
+                'IOC 추출·디팡, JWT·Base64·URL 검사, CVSS v3.1 계산기를 설치나 가입 없이 씁니다. 서버로 전송하는 값은 없습니다.')
+    page('tools/index.html', '도구', hub_desc, tpl('tools_hub.html'), 'tools',
+         extra_head=tool_head([], [
+             webapp('도현의 테크브리프 보안 도구함', hub_desc, '/tools/',
+                    ['IOC 추출·디팡', 'JWT 검사', 'Base64·URL 인코딩', 'CVSS v3.1 계산']),
+             breadcrumbs([('홈', '/'), ('도구', '/tools/')]),
+         ]),
+         title_raw='보안 도구함 — IOC 디팡 · JWT 검사 · CVSS 계산')
+
+    ioc_desc = ('로그·리포트를 붙여넣으면 IPv4, 도메인, URL, MD5·SHA1·SHA256, CVE, 이메일을 자동 추출해 중복을 합치고 '
+                'hxxps:// · [.] · [@] 형태로 디팡하거나 되돌려 복사합니다. 브라우저 안에서만 동작하고 입력값은 전송되지 않습니다.')
+    page('tools/ioc-defanger/index.html', 'IOC 디팡 도구', ioc_desc,
+         tpl('tools_ioc.html'), 'tools',
+         extra_head=tool_head(core_js + ['/assets/js/tools-ioc.js'], [
+             webapp('IOC 추출 · 디팡 도구', ioc_desc, '/tools/ioc-defanger/',
+                    ['IOC 자동 추출', '중복 제거', '디팡/리팡', '클립보드 복사']),
+             breadcrumbs([('홈', '/'), ('도구', '/tools/'), ('IOC 디팡', '/tools/ioc-defanger/')]),
+         ]),
+         title_raw='IOC 디팡 도구 — IP·도메인·URL·해시 추출 (Defang)')
+
+    jwt_desc = ('JWT를 붙여넣으면 헤더와 페이로드를 JSON으로 풀고 exp·iat·nbf를 UTC와 한국 시각으로 바꿔 만료 여부를 표시합니다. '
+                'alg=none, 대칭키 서명, 민감 클레임을 짚어 주고 Base64·Base64URL·URL 인코딩도 같은 화면에서 처리합니다.')
+    page('tools/jwt-inspector/index.html', 'JWT 검사기', jwt_desc,
+         tpl('tools_jwt.html'), 'tools',
+         extra_head=tool_head(core_js + ['/assets/js/tools-jwt.js'], [
+             webapp('JWT · Base64 · URL 검사기', jwt_desc, '/tools/jwt-inspector/',
+                    ['JWT 헤더·페이로드 디코딩', 'exp/iat/nbf 시각 변환', '서명 알고리즘 점검', 'Base64·Base64URL·URL 인코딩']),
+             breadcrumbs([('홈', '/'), ('도구', '/tools/'), ('JWT 검사기', '/tools/jwt-inspector/')]),
+         ]),
+         title_raw='JWT 디코더 · 검사기 — exp 만료 확인과 Base64 변환')
+
+    cvss_desc = ('FIRST.org CVSS v3.1 공식 수식으로 Base Score를 계산합니다. 메트릭 8개를 눌러 계산하거나 CVSS:3.1 벡터를 붙여넣으면 '
+                 '즉시 역파싱하고 심각도 배지를 보여줍니다. 공개 예제 28건으로 계산값을 검증했고 브라우저에서만 동작합니다.')
+    page('tools/cvss-calculator/index.html', 'CVSS 계산기', cvss_desc,
+         tpl('tools_cvss.html'), 'tools',
+         extra_head=tool_head(core_js + ['/assets/js/cvss-core.js', '/assets/js/cvss-ui.js'], [
+             webapp('CVSS v3.1 Base Score 계산기', cvss_desc, '/tools/cvss-calculator/',
+                    ['CVSS v3.1 Base Score 계산', '벡터 문자열 파서', '심각도 배지']),
+             breadcrumbs([('홈', '/'), ('도구', '/tools/'), ('CVSS 계산기', '/tools/cvss-calculator/')]),
+         ]),
+         title_raw='CVSS v3.1 계산기 — 벡터 파서 · Base Score')
+
     # ---- 404
     write('404.html', fill(base, {
         'site_title': SITE['title'], 'site_name': SITE['name'], 'tagline': SITE['tagline'],
         'page_title': '404', 'description': '페이지를 찾을 수 없습니다.',
-        'content': tpl('404.html'), 'nav_home': '', 'nav_archive': '',
+        'content': tpl('404.html'), 'nav_home': '', 'nav_archive': '', 'nav_tools': '',
         'year': datetime.date.today().year, 'author': SITE['author'], 'email': SITE['email'],
         'canonical': SITE['url'] + '/', 'og_image': SITE['url'] + '/assets/images/og-default.png',
         'extra_head': '', 'full_title': '페이지를 찾을 수 없습니다 — ' + SITE['name'],
@@ -589,6 +673,9 @@ def main():
     urls = [('%s/' % SITE['url'], posts[0]['date'], '1.0', 'daily'),
             ('%s/archive/' % SITE['url'], posts[0]['date'], '0.6', 'daily'),
             ('%s/about/' % SITE['url'], posts[0]['date'], '0.4', 'monthly')]
+    tool_date = datetime.date.today().isoformat()
+    for tool_path in ('/tools/', '/tools/ioc-defanger/', '/tools/jwt-inspector/', '/tools/cvss-calculator/'):
+        urls.append(('%s%s' % (SITE['url'], tool_path), tool_date, '0.8', 'monthly'))
     for p in posts:
         urls.append(('%s/posts/%s/' % (SITE['url'], p['slug']), p['date'], '0.9', 'monthly'))
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',
@@ -605,7 +692,7 @@ def main():
     # ---- keep Pages from running Jekyll
     write('.nojekyll', '')
 
-    print('built %d posts -> index.html, posts/, archive/, about/, feed.xml, sitemap.xml' % len(posts))
+    print('built %d posts -> index.html, posts/, archive/, about/, tools/, feed.xml, sitemap.xml' % len(posts))
 
 
 def new_post(title):

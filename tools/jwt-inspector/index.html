@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JWT 디코더 · 검사기 — exp 만료 확인과 Base64 변환</title>
+<meta name="description" content="JWT를 붙여넣으면 헤더와 페이로드를 JSON으로 풀고 exp·iat·nbf를 UTC와 한국 시각으로 바꿔 만료 여부를 표시합니다. alg=none, 대칭키 서명, 민감 클레임을 짚어 주고 Base64·Base64URL·URL 인코딩도 같은 화면에서 처리합니다.">
+<link rel="canonical" href="https://dohyeontech.github.io/tools/jwt-inspector/">
+<meta name="author" content="김도현">
+<meta name="msvalidate.01" content="7F649621B27074264CFFB0DCE372E1A9">
+<meta name="follow.it-verification-code" content="HkWaSeha15KxTX63qKkR">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="도현의 테크브리프">
+<meta property="og:title" content="JWT 디코더 · 검사기 — exp 만료 확인과 Base64 변환">
+<meta property="og:description" content="JWT를 붙여넣으면 헤더와 페이로드를 JSON으로 풀고 exp·iat·nbf를 UTC와 한국 시각으로 바꿔 만료 여부를 표시합니다. alg=none, 대칭키 서명, 민감 클레임을 짚어 주고 Base64·Base64URL·URL 인코딩도 같은 화면에서 처리합니다.">
+<meta property="og:url" content="https://dohyeontech.github.io/tools/jwt-inspector/">
+<meta property="og:image" content="https://dohyeontech.github.io/assets/images/og-default.png">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="JWT 디코더 · 검사기 — exp 만료 확인과 Base64 변환">
+<meta name="twitter:description" content="JWT를 붙여넣으면 헤더와 페이로드를 JSON으로 풀고 exp·iat·nbf를 UTC와 한국 시각으로 바꿔 만료 여부를 표시합니다. alg=none, 대칭키 서명, 민감 클레임을 짚어 주고 Base64·Base64URL·URL 인코딩도 같은 화면에서 처리합니다.">
+<meta name="twitter:image" content="https://dohyeontech.github.io/assets/images/og-default.png">
+<link rel="icon" href="/assets/images/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png">
+<link rel="alternate" type="application/rss+xml" title="도현의 테크브리프 RSS" href="/feed.xml">
+<link rel="alternate" type="application/feed+json" title="도현의 테크브리프 JSON Feed" href="/feed.json">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="/assets/css/style.css?v=c3f780e1">
+<link rel="stylesheet" href="/assets/css/tools.css?v=74beedc2">
+<script src="/assets/js/tools-core.js?v=97e2122d" defer></script>
+<script src="/assets/js/tools-jwt.js?v=44d646c2" defer></script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "JWT · Base64 · URL 검사기", "url": "https://dohyeontech.github.io/tools/jwt-inspector/", "description": "JWT를 붙여넣으면 헤더와 페이로드를 JSON으로 풀고 exp·iat·nbf를 UTC와 한국 시각으로 바꿔 만료 여부를 표시합니다. alg=none, 대칭키 서명, 민감 클레임을 짚어 주고 Base64·Base64URL·URL 인코딩도 같은 화면에서 처리합니다.", "applicationCategory": "SecurityApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "JavaScript; runs entirely in the browser, no upload", "isAccessibleForFree": true, "inLanguage": ["ko", "en"], "featureList": ["JWT 헤더·페이로드 디코딩", "exp/iat/nbf 시각 변환", "서명 알고리즘 점검", "Base64·Base64URL·URL 인코딩"], "offers": {"@type": "Offer", "price": "0", "priceCurrency": "KRW"}, "publisher": {"@type": "Organization", "name": "도현의 테크브리프", "url": "https://dohyeontech.github.io/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "홈", "item": "https://dohyeontech.github.io/"}, {"@type": "ListItem", "position": 2, "name": "도구", "item": "https://dohyeontech.github.io/tools/"}, {"@type": "ListItem", "position": 3, "name": "JWT 검사기", "item": "https://dohyeontech.github.io/tools/jwt-inspector/"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-header">
+  <div class="wrap header__inner">
+    <a class="brand" href="/">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <span class="brand__text">DOHYEON TECH BRIEF<span class="brand__suffix"> // CYBERSECURITY &amp; AI JOURNAL</span></span>
+    </a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a class="" href="/">홈</a>
+      <a class="" href="/archive/">아카이브</a>
+      <a class="is-active" href="/tools/">도구</a>
+      <a href="https://dohyeon-sniper-bot.onrender.com/dashboard" target="_blank" rel="noopener">대시보드</a>
+    </nav>
+  </div>
+</header>
+<main id="main">
+<section class="wrap tools-page">
+  <nav class="crumbs crumbs--tools" aria-label="위치"><a href="/">홈</a><span>/</span><a href="/tools/">도구</a><span>/</span><span class="crumbs__here">JWT 검사기</span></nav>
+
+  <header class="toolhead">
+    <div class="eyebrow">TOOL 02 · JWT INSPECTOR &amp; ENCODERS</div>
+    <h1 class="tool-h1">JWT · Base64 · URL 검사기</h1>
+    <p class="tool-lede">
+      JWT를 붙여넣으면 헤더와 페이로드를 풀어 JSON으로 보여주고, <code>exp</code>·<code>iat</code>·<code>nbf</code>를 UTC와 한국 시각으로 바꿔 지금 유효한지 표시합니다.
+      서명 알고리즘, 민감한 클레임, 만료 시각 누락처럼 실제 사고에서 자주 걸리는 지점을 함께 짚습니다. Base64·Base64URL·URL 인코딩도 같은 화면에서 됩니다.
+    </p>
+    <div class="trust">
+      <span class="trust__item">DECODE IN PAGE</span>
+      <span class="trust__item">NO UPLOAD</span>
+      <span class="trust__item">SIGNATURE NOT VERIFIED</span>
+    </div>
+  </header>
+
+  <section class="panel">
+    <div class="tabs" role="tablist" aria-label="도구 선택">
+      <button class="tab is-on" type="button" role="tab" aria-selected="true" data-pane="jwt">JWT 검사</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-pane="b64">Base64</button>
+      <button class="tab" type="button" role="tab" aria-selected="false" data-pane="url">URL 인코딩</button>
+    </div>
+
+    <div class="tabpane is-on" data-pane="jwt">
+      <div class="tbtnrow tbtnrow--between" style="margin-bottom:9px">
+        <span class="panel__label">TOKEN</span>
+        <div class="tbtnrow">
+          <button class="tbtn" type="button" id="jwt-sample-valid">예시: 유효 토큰</button>
+          <button class="tbtn" type="button" id="jwt-sample-none">예시: alg=none</button>
+          <button class="tbtn" type="button" id="jwt-clear">비우기</button>
+        </div>
+      </div>
+      <label class="sr-only" for="jwt-in">검사할 JWT</label>
+      <textarea class="field" id="jwt-in" spellcheck="false" rows="4" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"></textarea>
+      <p class="errline" id="jwt-err"></p>
+
+      <div class="jwt-grid">
+        <div>
+          <div class="subhead"><span>HEADER</span><button class="tbtn tbtn--copy" type="button" data-copy-from="jwt-header">COPY</button></div>
+          <div class="codebox"><pre class="json" id="jwt-header">—</pre></div>
+        </div>
+        <div>
+          <div class="subhead"><span>PAYLOAD</span><button class="tbtn tbtn--copy" type="button" data-copy-from="jwt-payload">COPY</button></div>
+          <div class="codebox"><pre class="json" id="jwt-payload">—</pre></div>
+        </div>
+      </div>
+
+      <div class="subhead"><span>SIGNATURE</span></div>
+      <div class="codebox"><pre class="json" id="jwt-signature" style="max-height:120px">—</pre></div>
+
+      <div class="subhead"><span>TIME CLAIMS</span></div>
+      <div class="table-wrap">
+        <table class="claim-table" id="jwt-times">
+          <thead><tr><th>클레임</th><th>값(Unix)</th><th>UTC</th><th>KST (UTC+9)</th><th>상태</th></tr></thead>
+          <tbody><tr><td colspan="5" style="color:#5d6b7a">토큰을 넣으면 시각 클레임을 여기에서 변환합니다.</td></tr></tbody>
+        </table>
+      </div>
+
+      <div class="subhead"><span>CHECKS / 확인 지점</span></div>
+      <div class="warnlist" id="jwt-checks">
+        <div class="warn warn--info"><span class="warn__tag">INFO</span><span>이 검사기는 서명을 검증하지 않습니다. 디코딩 결과는 누구나 만들 수 있으니, 신뢰 판단은 서버의 키 검증으로 하세요.</span></div>
+      </div>
+    </div>
+
+    <div class="tabpane" data-pane="b64">
+      <div class="tbtnrow tbtnrow--between" style="margin-bottom:9px">
+        <span class="panel__label">BASE64 / BASE64URL</span>
+        <div class="seg" id="b64-alphabet" role="group" aria-label="알파벳">
+          <button type="button" data-alpha="std" class="is-on">Base64</button>
+          <button type="button" data-alpha="url">Base64URL</button>
+        </div>
+      </div>
+      <label class="sr-only" for="b64-in">Base64 입력</label>
+      <textarea class="field" id="b64-in" spellcheck="false" rows="5" placeholder="인코딩할 텍스트 또는 디코딩할 Base64 문자열을 넣으세요."></textarea>
+      <div class="tbtnrow" style="margin-top:9px">
+        <button class="tbtn tbtn--primary" type="button" id="b64-encode">인코드 ↓</button>
+        <button class="tbtn" type="button" id="b64-decode">디코드 ↑</button>
+        <button class="tbtn" type="button" id="b64-swap">결과를 입력으로</button>
+      </div>
+      <p class="errline" id="b64-err"></p>
+      <div class="subhead"><span>OUTPUT</span><button class="tbtn tbtn--copy" type="button" data-copy-from="b64-out">COPY</button></div>
+      <div class="codebox"><pre class="json" id="b64-out" style="max-height:220px">—</pre></div>
+      <p class="toolnote" style="margin-top:10px">인코드는 UTF-8 텍스트를 바이트 단위로 처리합니다. 디코드가 깨지면 알파벳을 Base64URL로 바꾸거나 패딩(<code>=</code>)을 확인하세요.</p>
+    </div>
+
+    <div class="tabpane" data-pane="url">
+      <div class="tbtnrow tbtnrow--between" style="margin-bottom:9px">
+        <span class="panel__label">PERCENT-ENCODING</span>
+        <label class="switch"><input type="checkbox" id="url-form"> 폼 인코딩(+ = 공백)</label>
+      </div>
+      <label class="sr-only" for="url-in">URL 인코딩 입력</label>
+      <textarea class="field" id="url-in" spellcheck="false" rows="5" placeholder="인코딩할 문자열 또는 %ED%95%9C%EA%B8%80 같은 인코딩된 문자열을 넣으세요."></textarea>
+      <div class="tbtnrow" style="margin-top:9px">
+        <button class="tbtn tbtn--primary" type="button" id="url-encode">인코드 ↓</button>
+        <button class="tbtn" type="button" id="url-decode">디코드 ↑</button>
+        <button class="tbtn" type="button" id="url-swap">결과를 입력으로</button>
+      </div>
+      <p class="errline" id="url-err"></p>
+      <div class="subhead"><span>OUTPUT</span><button class="tbtn tbtn--copy" type="button" data-copy-from="url-out">COPY</button></div>
+      <div class="codebox"><pre class="json" id="url-out" style="max-height:220px">—</pre></div>
+      <p class="toolnote" style="margin-top:10px">인코드는 예약 문자와 한글을 모두 <code>%XX</code>로 바꿉니다. 경로 일부만 인코딩할 때는 원하는 구간만 잘라 넣으세요.</p>
+    </div>
+  </section>
+
+  <section class="toolsec">
+    <div class="toolsec__head">READING THE RESULT</div>
+    <h2 class="toolsec__title">결과를 읽는 법</h2>
+    <div class="toolsec__body">
+      <ul>
+        <li><strong>exp / iat / nbf</strong> — 각각 만료·발급·유효 시작 시각입니다. 서버와 브라우저의 시계가 어긋나면 정상 토큰도 만료로 보일 수 있어, 여유 시간(보통 30~120초)을 두고 판단하세요.</li>
+        <li><strong>alg=none</strong> — 서명이 없는 토큰입니다. 검증을 생략하는 구현에 들어가면 누구나 위조할 수 있어 CVE가 반복해서 나오는 지점입니다.</li>
+        <li><strong>HS256/HS384/HS512</strong> — 대칭키 서명입니다. 비밀이 짧으면 오프라인 대입 공격으로 뚫리고, 공개키 검증 구현에서 alg를 그대로 믿으면 RS256→HS256 혼동 공격에 쓰입니다.</li>
+        <li><strong>민감 클레임</strong> — <code>password</code>, <code>secret</code>, <code>api_key</code>, <code>token</code> 같은 이름의 값이 페이로드에 있으면 표시합니다. 페이로드는 암호화가 아니라 인코딩이라 누구나 읽습니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <nav class="xlinks" aria-label="다른 도구">
+    <a class="xlink" href="/tools/ioc-defanger/"><div class="xlink__k">PREV · 01</div><div class="xlink__t">IOC 추출 · 디팡</div><div class="xlink__d">로그에서 지표를 뽑아 안전한 표기로 바꿉니다.</div></a>
+    <a class="xlink" href="/tools/cvss-calculator/"><div class="xlink__k">NEXT · 03</div><div class="xlink__t">CVSS v3.1 계산기</div><div class="xlink__d">8개 메트릭 또는 벡터 문자열로 Base 점수를 계산합니다.</div></a>
+    <a class="xlink" href="/tools/"><div class="xlink__k">HUB</div><div class="xlink__t">도구 목록으로</div><div class="xlink__d">세 도구의 용도와 처리 방식을 한눈에 봅니다.</div></a>
+  </nav>
+
+  <p class="toolfoot">입력한 토큰은 페이지 메모리에만 있습니다. 다만 실제 운영 토큰은 값 자체가 열쇠이므로, 만료된 사본이나 마스킹한 사본으로 확인하는 습관이 안전합니다.</p>
+  <noscript><p class="noscript-note">이 도구는 브라우저에서 자바스크립트로 동작합니다. 자바스크립트를 켜면 바로 사용할 수 있습니다.</p></noscript>
+</section>
+
+</main>
+<footer class="site-footer">
+  <!-- 광고·제휴·후원 슬롯: 필요할 때 이 자리에 스크립트나 링크 블록을 넣는다. (기본은 비움) -->
+  <div class="wrap footer__inner">
+    <div class="footer__col footer__col--brand">
+      <div class="footer__brand">DOHYEON TECH BRIEF</div>
+      <p class="footer__desc">제로데이·공급망 공격·AI 보안을 소스 레벨에서 분석하는 엔지니어링 저널.</p>
+    </div>
+    <div class="footer__col">
+      <div class="footer__head">PAGES</div>
+      <a href="/">홈</a>
+      <a href="/archive/">아카이브</a>
+      <a href="/tools/">도구</a>
+      <a href="/about/">소개</a>
+      <a href="/feed.xml">RSS</a>
+      <a href="/feed.json">JSON 피드</a>
+    </div>
+    <div class="footer__col">
+      <div class="footer__head">CONTACT</div>
+      <a href="mailto:dohyeon.tech@proton.me">dohyeon.tech@proton.me</a>
+      <a href="https://dohyeon-sniper-bot.onrender.com/dashboard" target="_blank" rel="noopener">가상 트레이딩 대시보드</a>
+    </div>
+  </div>
+  <div class="wrap footer__bottom">
+    <span>© 2026 김도현. 분석 내용은 공개된 자료를 근거로 작성됩니다.</span>
+    <span class="footer__mono">BUILT STATIC · GITHUB PAGES</span>
+  </div>
+</footer>
+<script src="/assets/js/main.js?v=e09c6f7b" defer></script>
+</body>
+</html>

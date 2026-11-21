@@ -1,0 +1,245 @@
+{
+ "note": "CVSS v3.1 base-score test vectors. Scores come from FIRST.org published examples and NVD cvssMetricV31 entries; do not edit scores by hand.",
+ "generated_at": "2026-11-21",
+ "count": 34,
+ "vectors": [
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 3. MySQL Stored SQL Injection",
+   "ref": "3. MySQL Stored SQL Injection (CVE-2013-0375)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:L/I:L/A:N",
+   "score": 6.4,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 4. SSLv3 POODLE Vulnerability",
+   "ref": "4. SSLv3 POODLE Vulnerability (CVE-2014-3566)",
+   "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:L/I:N/A:N",
+   "score": 3.1,
+   "severity": "LOW"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 5. VMware Guest to Host Escape Vulnerability",
+   "ref": "5. VMware Guest to Host Escape Vulnerability (CVE-2012-1516)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H",
+   "score": 9.9,
+   "severity": "CRITICAL"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 6. Apache Tomcat XML Parser Vulnerability",
+   "ref": "6. Apache Tomcat XML Parser Vulnerability (CVE-2009-0783)",
+   "vector": "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:U/C:L/I:L/A:L",
+   "score": 4.2,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 7. Cisco IOS Arbitrary Command Execution Vulnerability",
+   "ref": "7. Cisco IOS Arbitrary Command Execution Vulnerability (CVE-2012-0384)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:H/UI:N/S:U/C:H/I:H/A:H",
+   "score": 7.2,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 8. Apple iWork Denial of Service Vulnerability",
+   "ref": "8. Apple iWork Denial of Service Vulnerability (CVE-2015-1098)",
+   "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+   "score": 7.8,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 9. OpenSSL Heartbleed Vulnerability",
+   "ref": "9. OpenSSL Heartbleed Vulnerability (CVE-2014-0160)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+   "score": 7.5,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 10. GNU Bourne-Again Shell",
+   "ref": "10. GNU Bourne-Again Shell (Bash) ‘Shellshock’ Vulnerability (CVE-2014-6271)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+   "score": 9.8,
+   "severity": "CRITICAL"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 11. DNS Kaminsky Bug",
+   "ref": "11. DNS Kaminsky Bug (CVE-2008-1447)",
+   "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:N/I:H/A:N",
+   "score": 6.8,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 12. Sophos Login Screen Bypass Vulnerability",
+   "ref": "12. Sophos Login Screen Bypass Vulnerability (CVE-2014-2005)",
+   "vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+   "score": 6.8,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 13. Joomla Directory Traversal Vulnerability",
+   "ref": "13. Joomla Directory Traversal Vulnerability (CVE-2010-0467)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:L/I:N/A:N",
+   "score": 5.8,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 14. Cisco Access Control Bypass Vulnerability",
+   "ref": "14. Cisco Access Control Bypass Vulnerability (CVE-2012-1342)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:N/I:L/A:N",
+   "score": 5.8,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 15. Juniper Proxy ARP Denial of Service Vulnerability",
+   "ref": "15. Juniper Proxy ARP Denial of Service Vulnerability (CVE-2013-6014)",
+   "vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:N/S:C/C:H/I:N/A:H",
+   "score": 9.3,
+   "severity": "CRITICAL"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 16. Cantemo Portal Stored Cross-site Scripting Vulnerability",
+   "ref": "16. Cantemo Portal Stored Cross-site Scripting Vulnerability (CVE-2019-7551)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:R/S:C/C:H/I:H/A:H",
+   "score": 9.0,
+   "severity": "CRITICAL"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 17. Adobe Acrobat Buffer Overflow Vulnerability",
+   "ref": "17. Adobe Acrobat Buffer Overflow Vulnerability (CVE-2009-0658)",
+   "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+   "score": 7.8,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 18. Microsoft Windows Bluetooth Remote Code Execution Vulnerability",
+   "ref": "18. Microsoft Windows Bluetooth Remote Code Execution Vulnerability (CVE-2011-1265)",
+   "vector": "CVSS:3.1/AV:A/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+   "score": 8.8,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 19. Apple iOS Security Control Bypass Vulnerability",
+   "ref": "19. Apple iOS Security Control Bypass Vulnerability (CVE-2014-2019)",
+   "vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:U/C:N/I:H/A:N",
+   "score": 4.6,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 20. SearchBlox Cross-Site Request Forgery Vulnerability",
+   "ref": "20. SearchBlox Cross-Site Request Forgery Vulnerability (CVE-2015-0970)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+   "score": 8.8,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 21. SSL/TLS MITM Vulnerability",
+   "ref": "21. SSL/TLS MITM Vulnerability (CVE-2014-0224)",
+   "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:H/A:N",
+   "score": 7.4,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 22. Google Chrome Sandbox Bypass vulnerability",
+   "ref": "22. Google Chrome Sandbox Bypass vulnerability (CVE-2012-5376)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:H/I:H/A:H",
+   "score": 9.6,
+   "severity": "CRITICAL"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 23. Google Chrome PDFium JPEG 2000 Remote Code Execution Vulnerability",
+   "ref": "23. Google Chrome PDFium JPEG 2000 Remote Code Execution Vulnerability (CVE-2016-1645)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+   "score": 8.8,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 24. SAMR/LSAD Privilege Escalation via Protocol Downgrade Vulnerability",
+   "ref": "24. SAMR/LSAD Privilege Escalation via Protocol Downgrade Vulnerability (“Badlock”) (CVE-2016-0128 and CVE-2016-2118)",
+   "vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:H/A:N",
+   "score": 6.8,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 25. WordPress Mail Plugin Reflected Cross-site Scripting Vulnerability",
+   "ref": "25. WordPress Mail Plugin Reflected Cross-site Scripting Vulnerability (CVE-2017-5942)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:C/C:L/I:L/A:N",
+   "score": 6.1,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 26. Opera DLL search order hijacking",
+   "ref": "26. Opera DLL search order hijacking (CVE-2018-18913)",
+   "vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+   "score": 7.8,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 27. Remote Code Execution in Oracle Outside in Technology",
+   "ref": "27. Remote Code Execution in Oracle Outside in Technology (CVE-2016-5558)",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:L/A:L",
+   "score": 8.6,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 28. Lenovo ThnkPwn Exploit",
+   "ref": "28. Lenovo ThnkPwn Exploit (CVE-2016-5729)",
+   "vector": "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:C/C:H/I:H/A:H",
+   "score": 8.2,
+   "severity": "HIGH"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 29. Failure to Lock Flash on Resume from sleep",
+   "ref": "29. Failure to Lock Flash on Resume from sleep (CVE-2015-2890)",
+   "vector": "CVSS:3.1/AV:L/AC:L/PR:H/UI:N/S:U/C:N/I:H/A:H",
+   "score": 6.0,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "FIRST.org CVSS v3.1 Examples — 30. Intel DCI Issue",
+   "ref": "30. Intel DCI Issue (CVE-2018-3652)",
+   "vector": "CVSS:3.1/AV:P/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+   "score": 7.6,
+   "severity": "HIGH"
+  },
+  {
+   "source": "NVD (cvssMetricV31) CVE-2021-44228",
+   "ref": "CVE-2021-44228",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:C/C:H/I:H/A:H",
+   "score": 10.0,
+   "severity": "CRITICAL"
+  },
+  {
+   "source": "NVD (cvssMetricV31) CVE-2020-1472",
+   "ref": "CVE-2020-1472",
+   "vector": "CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:N/A:N",
+   "score": 5.5,
+   "severity": "MEDIUM"
+  },
+  {
+   "source": "NVD (cvssMetricV31) CVE-2017-0144",
+   "ref": "CVE-2017-0144",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H",
+   "score": 8.8,
+   "severity": "HIGH"
+  },
+  {
+   "source": "NVD (cvssMetricV31) CVE-2023-4863",
+   "ref": "CVE-2023-4863",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+   "score": 8.8,
+   "severity": "HIGH"
+  },
+  {
+   "source": "NVD (cvssMetricV31) CVE-2014-0160",
+   "ref": "CVE-2014-0160",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+   "score": 7.5,
+   "severity": "HIGH"
+  },
+  {
+   "source": "NVD (cvssMetricV31) CVE-2022-1388",
+   "ref": "CVE-2022-1388",
+   "vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H",
+   "score": 9.8,
+   "severity": "CRITICAL"
+  }
+ ]
+}

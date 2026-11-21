@@ -1,0 +1,199 @@
+<section class="wrap tools-page">
+  <nav class="crumbs crumbs--tools" aria-label="위치"><a href="/">홈</a><span>/</span><a href="/tools/">도구</a><span>/</span><span class="crumbs__here">CVSS 계산기</span></nav>
+
+  <header class="toolhead">
+    <div class="eyebrow">TOOL 03 · CVSS v3.1 BASE SCORE</div>
+    <h1 class="tool-h1">CVSS v3.1 Base Score 계산기</h1>
+    <p class="tool-lede">
+      기본 메트릭 8개를 눌러 점수를 계산합니다. <code>CVSS:3.1/AV:N/AC:L/…</code> 형태의 벡터 문자열을 붙여넣으면 그 값으로 메트릭이 자동으로 맞춰집니다.
+      FIRST.org 명세의 수식과 반올림 규칙을 그대로 옮겼고, 공개된 계산 예제 28건과 대조해 검증했습니다.
+    </p>
+    <div class="trust">
+      <span class="trust__item">FIRST.ORG v3.1 FORMULA</span>
+      <span class="trust__item">ROUNDUP 1-DECIMAL</span>
+      <span class="trust__item">VECTOR ↔ METRICS</span>
+    </div>
+  </header>
+
+  <div class="cvss-layout">
+    <div class="cvss-top">
+      <div class="scorecard" aria-live="polite">
+        <div class="scorecard__cap">BASE SCORE</div>
+        <div class="scorecard__n" id="cvss-score">6.5</div>
+        <div class="scorecard__sev sev--medium" id="cvss-sev">MEDIUM</div>
+        <div class="subscores">
+          <div><span>Exploitability</span><b id="cvss-exp">2.8</b></div>
+          <div><span>Impact</span><b id="cvss-imp">3.6</b></div>
+          <div><span>ISS</span><b id="cvss-iss">0.6</b></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel__head">
+          <span class="panel__label">VECTOR / 붙여넣기 또는 복사</span>
+          <div class="tbtnrow">
+            <button class="tbtn tbtn--primary" type="button" id="cvss-copy">벡터 복사</button>
+            <button class="tbtn" type="button" id="cvss-reset">초기화</button>
+          </div>
+        </div>
+        <div class="panel__body">
+          <div class="vectorbox">
+            <label class="vectorbox__label" for="cvss-vector">CVSS:3.1 VECTOR STRING</label>
+            <input class="vector-input" id="cvss-vector" type="text" spellcheck="false" autocomplete="off" aria-describedby="cvss-err">
+            <p class="errline" id="cvss-err"></p>
+          </div>
+          <p class="toolnote" style="margin-top:6px">메트릭을 바꾸면 위 벡터가 따라 바뀌고, 벡터를 고치면 아래 메트릭이 따라 바뀝니다. 계산 결과는 주소창 뒤쪽(<code>#CVSS:3.1/…</code>)에만 반영되어 링크로 공유할 수 있습니다.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel__head">
+        <span class="panel__label">BASE METRICS / 8개</span>
+        <span class="panel__label" id="cvss-combo">2,592 COMBINATIONS</span>
+      </div>
+      <div class="panel__body">
+        <div class="metrics">
+          <div class="metric">
+            <div class="metric__name">
+              <span class="metric__abbr">AV</span>
+              <span class="metric__label">공격 경로 <span style="font-weight:400;color:#6b7885">Attack Vector</span></span>
+              <span class="metric__desc">취약한 구성 요소에 어떻게 닿는지</span>
+            </div>
+            <div class="opts" role="radiogroup" aria-label="공격 경로">
+              <label class="opt"><input type="radio" name="AV" value="N" checked><span>N · 네트워크</span></label>
+              <label class="opt"><input type="radio" name="AV" value="A"><span>A · 인접</span></label>
+              <label class="opt"><input type="radio" name="AV" value="L"><span>L · 로컬</span></label>
+              <label class="opt"><input type="radio" name="AV" value="P"><span>P · 물리</span></label>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric__name">
+              <span class="metric__abbr">AC</span>
+              <span class="metric__label">공격 복잡도 <span style="font-weight:400;color:#6b7885">Attack Complexity</span></span>
+              <span class="metric__desc">공격자가 통제할 수 없는 조건이 필요한지</span>
+            </div>
+            <div class="opts" role="radiogroup" aria-label="공격 복잡도">
+              <label class="opt"><input type="radio" name="AC" value="L" checked><span>L · 낮음</span></label>
+              <label class="opt"><input type="radio" name="AC" value="H"><span>H · 높음</span></label>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric__name">
+              <span class="metric__abbr">PR</span>
+              <span class="metric__label">필요 권한 <span style="font-weight:400;color:#6b7885">Privileges Required</span></span>
+              <span class="metric__desc">공격 전에 필요한 계정 권한</span>
+            </div>
+            <div class="opts" role="radiogroup" aria-label="필요 권한">
+              <label class="opt"><input type="radio" name="PR" value="N"><span>N · 없음</span></label>
+              <label class="opt"><input type="radio" name="PR" value="L" checked><span>L · 낮음</span></label>
+              <label class="opt"><input type="radio" name="PR" value="H"><span>H · 높음</span></label>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric__name">
+              <span class="metric__abbr">UI</span>
+              <span class="metric__label">사용자 상호작용 <span style="font-weight:400;color:#6b7885">User Interaction</span></span>
+              <span class="metric__desc">피해자의 클릭·실행이 필요한지</span>
+            </div>
+            <div class="opts" role="radiogroup" aria-label="사용자 상호작용">
+              <label class="opt"><input type="radio" name="UI" value="N" checked><span>N · 없음</span></label>
+              <label class="opt"><input type="radio" name="UI" value="R"><span>R · 필요</span></label>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric__name">
+              <span class="metric__abbr">S</span>
+              <span class="metric__label">영향 범위 <span style="font-weight:400;color:#6b7885">Scope</span></span>
+              <span class="metric__desc">영향이 다른 보안 영역으로 번지는지</span>
+            </div>
+            <div class="opts" role="radiogroup" aria-label="영향 범위">
+              <label class="opt"><input type="radio" name="S" value="U" checked><span>U · 변경 없음</span></label>
+              <label class="opt"><input type="radio" name="S" value="C"><span>C · 변경됨</span></label>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric__name">
+              <span class="metric__abbr">C</span>
+              <span class="metric__label">기밀성 <span style="font-weight:400;color:#6b7885">Confidentiality</span></span>
+              <span class="metric__desc">정보가 읽히는가</span>
+            </div>
+            <div class="opts" role="radiogroup" aria-label="기밀성">
+              <label class="opt"><input type="radio" name="C" value="H" checked><span>H · 높음</span></label>
+              <label class="opt"><input type="radio" name="C" value="L"><span>L · 낮음</span></label>
+              <label class="opt"><input type="radio" name="C" value="N"><span>N · 없음</span></label>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric__name">
+              <span class="metric__abbr">I</span>
+              <span class="metric__label">무결성 <span style="font-weight:400;color:#6b7885">Integrity</span></span>
+              <span class="metric__desc">데이터가 바뀌는가</span>
+            </div>
+            <div class="opts" role="radiogroup" aria-label="무결성">
+              <label class="opt"><input type="radio" name="I" value="H"><span>H · 높음</span></label>
+              <label class="opt"><input type="radio" name="I" value="L"><span>L · 낮음</span></label>
+              <label class="opt"><input type="radio" name="I" value="N" checked><span>N · 없음</span></label>
+            </div>
+          </div>
+
+          <div class="metric">
+            <div class="metric__name">
+              <span class="metric__abbr">A</span>
+              <span class="metric__label">가용성 <span style="font-weight:400;color:#6b7885">Availability</span></span>
+              <span class="metric__desc">서비스가 멈추는가</span>
+            </div>
+            <div class="opts" role="radiogroup" aria-label="가용성">
+              <label class="opt"><input type="radio" name="A" value="H"><span>H · 높음</span></label>
+              <label class="opt"><input type="radio" name="A" value="L"><span>L · 낮음</span></label>
+              <label class="opt"><input type="radio" name="A" value="N" checked><span>N · 없음</span></label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="toolsec">
+    <div class="toolsec__head">HOW IT IS COMPUTED</div>
+    <h2 class="toolsec__title">점수가 나오는 과정</h2>
+    <div class="toolsec__body">
+      <p>CVSS v3.1의 기본 점수는 Exploitability와 Impact를 더한 뒤, Scope가 바뀐 경우 1.08을 곱하고 10을 넘지 않게 자른 다음 소수 첫째 자리로 올림합니다.</p>
+      <ul>
+        <li><code>ISS = 1 - (1-C)(1-I)(1-A)</code></li>
+        <li><code>Impact = 6.42 × ISS</code> (Scope Unchanged) / <code>7.52 × (ISS-0.029) - 3.25 × (ISS-0.02)^15</code> (Scope Changed)</li>
+        <li><code>Exploitability = 8.22 × AV × AC × PR × UI</code> — PR 가중치는 Scope가 바뀌면 달라집니다(0.68 / 0.5).</li>
+        <li><code>Base = Roundup(min(Impact + Exploitability, 10))</code> 또는 Scope Changed에서 <code>Roundup(min(1.08 × (Impact + Exploitability), 10))</code></li>
+      </ul>
+      <p><code>Roundup</code>은 명세 부록 A의 권고대로 입력에 100,000을 곱해 정수로 만든 뒤 정수 연산으로 올림합니다. 부동소수점 오차 때문에 4.02가 4.1로, 4.00이 4.0으로 정확히 떨어지는지가 이 부분에서 갈립니다.</p>
+      <p>심각도 구간은 0.0 None, 0.1–3.9 Low, 4.0–6.9 Medium, 7.0–8.9 High, 9.0–10.0 Critical입니다.</p>
+    </div>
+  </section>
+
+  <section class="toolsec">
+    <div class="toolsec__head">SCOPE &amp; LIMITS</div>
+    <h2 class="toolsec__title">이 계산기가 다루지 않는 것</h2>
+    <div class="toolsec__body">
+      <ul>
+        <li><strong>Temporal</strong>(악용 코드 성숙도 E, 패치 수준 RL, 보고 신뢰도 RC)과 <strong>Environmental</strong>(CR·IR·AR, 수정 메트릭)은 계산하지 않습니다. 두 축은 조직과 시점에 따라 달라서, 필요하면 명세의 7.2·7.3절 수식을 같은 방식으로 적용해야 합니다.</li>
+        <li>CVSS v4.0은 메트릭 구성과 점수 체계가 완전히 달라 이 계산기로 계산되지 않습니다. 벡터가 <code>CVSS:4.0/</code>으로 시작하면 값을 받지 않습니다.</li>
+        <li>점수는 취약점의 기술적 특성만 반영합니다. 실제 대응 우선순위는 자산 노출도, CISA KEV 등재 여부, 실제 악용 정황과 함께 판단하세요.</li>
+      </ul>
+    </div>
+  </section>
+
+  <nav class="xlinks" aria-label="다른 도구">
+    <a class="xlink" href="/tools/ioc-defanger/"><div class="xlink__k">01</div><div class="xlink__t">IOC 추출 · 디팡</div><div class="xlink__d">로그에서 지표를 뽑아 안전한 표기로 바꿉니다.</div></a>
+    <a class="xlink" href="/tools/jwt-inspector/"><div class="xlink__k">02</div><div class="xlink__t">JWT · Base64 · URL 검사기</div><div class="xlink__d">토큰 헤더·페이로드와 만료 시각을 확인합니다.</div></a>
+    <a class="xlink" href="/tools/"><div class="xlink__k">HUB</div><div class="xlink__t">도구 목록으로</div><div class="xlink__d">세 도구의 용도와 처리 방식을 한눈에 봅니다.</div></a>
+  </nav>
+
+  <p class="toolfoot">CVSS는 FIRST.Org, Inc.의 상표입니다. 수식과 반올림 규칙은 <a href="https://www.first.org/cvss/v3.1/specification-document" target="_blank" rel="noopener">CVSS v3.1 명세</a>를 따랐고, 예제 검증에는 <a href="https://www.first.org/cvss/v3.1/examples" target="_blank" rel="noopener">공식 예제 문서</a>를 사용했습니다.</p>
+  <noscript><p class="noscript-note">이 계산기는 브라우저에서 자바스크립트로 동작합니다. 자바스크립트를 켜면 바로 사용할 수 있습니다.</p></noscript>
+</section>

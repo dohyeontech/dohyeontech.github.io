@@ -1,0 +1,92 @@
+<section class="wrap tools-page">
+  <nav class="crumbs crumbs--tools" aria-label="위치"><a href="/">홈</a><span>/</span><span class="crumbs__here">도구</span></nav>
+
+  <header class="toolhead">
+    <div class="eyebrow">TOOLBOX · CLIENT-SIDE ONLY</div>
+    <h1 class="tool-h1">보안 도구함 — 로그와 토큰을 브라우저 안에서만 처리하는 무료 도구</h1>
+    <p class="tool-lede">
+      침해 사고 대응이나 취약점 정리 중에 급하게 필요한 세 가지를 만들었습니다. IOC를 안전한 형태로 바꾸는 디팡, JWT와 인코딩 문자열 확인, CVSS v3.1 점수 계산입니다.
+      세 도구 모두 <strong>입력값을 서버로 보내지 않습니다</strong>. 자바스크립트가 이 페이지 안에서만 돌고, 결과도 화면에만 남습니다.
+    </p>
+    <div class="trust">
+      <span class="trust__item">SERVER ROUND-TRIP 0</span>
+      <span class="trust__item">NO COOKIE · NO STORAGE</span>
+      <span class="trust__item">NO SIGN-UP</span>
+      <span class="trust__item">OFFLINE READY</span>
+    </div>
+  </header>
+
+  <div class="toolcards">
+    <a class="toolcard" href="/tools/ioc-defanger/">
+      <div class="toolcard__idx">01 / IOC</div>
+      <h2 class="toolcard__title">IOC 추출 · 디팡</h2>
+      <div class="toolcard__en">IOC Extractor &amp; Defanger</div>
+      <p class="toolcard__desc">로그나 리포트를 붙여넣으면 IPv4, 도메인, URL, MD5·SHA1·SHA256, CVE, 이메일을 자동으로 뽑아 중복을 합칩니다. `hxxps://`, `[.]`, `[@]` 형태로 한 번에 바꾸거나 원래대로 되돌려 복사할 수 있습니다.</p>
+      <div class="toolcard__chips"><span class="chip">IPv4</span><span class="chip">DOMAIN</span><span class="chip">URL</span><span class="chip">HASH</span><span class="chip">CVE</span></div>
+      <div class="toolcard__cta">도구 열기 →</div>
+    </a>
+
+    <a class="toolcard" href="/tools/jwt-inspector/">
+      <div class="toolcard__idx">02 / JWT</div>
+      <h2 class="toolcard__title">JWT · Base64 · URL 검사기</h2>
+      <div class="toolcard__en">JWT Inspector &amp; Encoder</div>
+      <p class="toolcard__desc">토큰을 넣으면 헤더와 페이로드를 풀어 JSON으로 보여주고, <code>exp</code>·<code>iat</code>·<code>nbf</code>를 UTC와 한국 시각으로 바꿔 만료 여부를 표시합니다. <code>alg=none</code>, 대칭키 서명, 민감 클레임처럼 확인해야 할 지점을 짚어 줍니다.</p>
+      <div class="toolcard__chips"><span class="chip">HEADER</span><span class="chip">PAYLOAD</span><span class="chip">exp / iat / nbf</span><span class="chip">BASE64</span><span class="chip">URL</span></div>
+      <div class="toolcard__cta">도구 열기 →</div>
+    </a>
+
+    <a class="toolcard" href="/tools/cvss-calculator/">
+      <div class="toolcard__idx">03 / CVSS</div>
+      <h2 class="toolcard__title">CVSS v3.1 계산기</h2>
+      <div class="toolcard__en">CVSS v3.1 Base Score Calculator</div>
+      <p class="toolcard__desc">8개 기본 메트릭을 눌러 점수를 계산하고, <code>CVSS:3.1/AV:…</code> 벡터 문자열을 붙여넣으면 그대로 역파싱합니다. FIRST.org 공식 수식과 반올림 규칙을 그대로 구현했고, 공개 예제 28건으로 계산값을 검증했습니다.</p>
+      <div class="toolcard__chips"><span class="chip">BASE SCORE</span><span class="chip">VECTOR PARSER</span><span class="chip">SEVERITY</span></div>
+      <div class="toolcard__cta">도구 열기 →</div>
+    </a>
+  </div>
+
+  <section class="toolsec">
+    <div class="toolsec__head">WHY CLIENT-SIDE</div>
+    <h2 class="toolsec__title">왜 서버를 거치지 않게 만들었나</h2>
+    <div class="toolsec__body">
+      <p>이 도구들에 붙여넣는 값은 대개 사고 현장에서 나온 것입니다. 내부 사설 IP, 사내 도메인, 침해 계정의 메일 주소, 아직 폐기하지 못한 세션 토큰이 섞여 있습니다. 그런 문자열을 무료 변환 사이트에 넣는 순간, 입력값은 남의 서버 로그에 남고 그 로그가 다시 유출될 수 있습니다. 편하려고 연 도구가 2차 유출 경로가 되는 셈입니다.</p>
+      <p>그래서 이 세 도구는 서버가 아예 없습니다. 페이지를 열 때 받는 것은 정적 HTML·CSS·JS뿐이고, 입력값은 탭의 메모리에서만 처리됩니다. 쿠키도, 로컬스토리지도, 분석 스크립트도 쓰지 않습니다. 새로고침하면 입력값은 사라집니다.</p>
+      <p>브라우저 개발자 도구의 Network 탭을 열어 두고 써 보시면 입력할 때 요청이 하나도 나가지 않는 것을 직접 확인할 수 있습니다.</p>
+    </div>
+    <div class="factgrid">
+      <div class="fact">
+        <div class="fact__k">NO UPLOAD</div>
+        <div class="fact__v">입력값을 읽고 쓰는 코드는 전부 이 페이지에 실려 내려온 자바스크립트입니다. 전송 API를 호출하지 않습니다.</div>
+      </div>
+      <div class="fact">
+        <div class="fact__k">NO PERSISTENCE</div>
+        <div class="fact__v">쿠키·로컬스토리지·인덱스드DB를 쓰지 않습니다. 탭을 닫으면 남는 값이 없습니다.</div>
+      </div>
+      <div class="fact">
+        <div class="fact__k">NO TRACKING</div>
+        <div class="fact__v">광고·분석 스크립트를 넣지 않았습니다. 외부에서 받는 것은 폰트뿐입니다.</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="toolsec">
+    <div class="toolsec__head">USAGE NOTES</div>
+    <h2 class="toolsec__title">쓸 때 알아 둘 것</h2>
+    <div class="toolsec__body">
+      <ul>
+        <li><strong>디팡은 표기만 바꿉니다.</strong> 실제 접속을 막는 조치가 아니라, 보고서·티켓·메신저에서 링크가 그대로 눌리지 않게 하는 표기 규칙입니다. 메일 본문에 넣을 때는 링크가 자동으로 활성화되지 않는지 한 번 더 확인하세요.</li>
+        <li><strong>JWT 검사기는 서명을 검증하지 않습니다.</strong> 디코딩은 누구나 할 수 있는 일이라, 여기서 “유효하다”는 것은 형식과 시각이 맞는다는 뜻입니다. 서명 검증은 서버의 키로 따로 해야 합니다.</li>
+        <li><strong>CVSS는 Base 점수만 계산합니다.</strong> Temporal(악용 코드 성숙도 등)과 Environmental(자산 중요도)은 환경마다 달라서 넣지 않았습니다. 실제 위험도 판단에는 그 두 축을 함께 보세요.</li>
+        <li><strong>결과는 참고용입니다.</strong> 자동 추출은 정규식이라 파일 확장자처럼 보이는 조각을 도메인으로 잡을 수 있습니다. 중요한 판단 전에는 원문과 대조하세요.</li>
+      </ul>
+    </div>
+  </section>
+
+  <nav class="xlinks" aria-label="관련 페이지">
+    <a class="xlink" href="/archive/"><div class="xlink__k">ARCHIVE</div><div class="xlink__t">분석 리포트 전체 보기</div><div class="xlink__d">제로데이·공급망 공격을 소스 레벨에서 정리한 글 목록입니다.</div></a>
+    <a class="xlink" href="/about/"><div class="xlink__k">ABOUT</div><div class="xlink__t">운영 원칙</div><div class="xlink__d">광고·트래킹을 넣지 않는 이유와 정정 절차를 적어 두었습니다.</div></a>
+    <a class="xlink" href="/feed.xml"><div class="xlink__k">FEED</div><div class="xlink__t">RSS / JSON 피드</div><div class="xlink__d">새 리포트와 도구 업데이트를 리더기로 받아 볼 수 있습니다.</div></a>
+  </nav>
+
+  <p class="toolfoot">CVSS는 FIRST.Org, Inc.의 상표이며 이 계산기는 <a href="https://www.first.org/cvss/v3.1/specification-document" target="_blank" rel="noopener">CVSS v3.1 명세</a>의 수식을 따릅니다. 도구 동작이 이상하거나 계산이 틀린 것 같으면 <a href="mailto:dohyeon.tech@proton.me">dohyeon.tech@proton.me</a>로 알려 주세요.</p>
+</section>
