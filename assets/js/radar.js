@@ -37,8 +37,8 @@
   var POLL_MS = 15000;        // 바이낸스 현물·선물·환율 갱신 주기
   var MARKETS_TTL = 600000;   // 업비트 마켓 목록 캐시 10분
   var FX_TTL = 300000;        // 환율 캐시 5분
-  var REST_SWEEP_MS = 40000;  // 스트림 실패 시 보조 수집 시작 간격
-  var REST_CHUNK_GAP = 10000; // 업비트 교차 출처 REST는 분당 6회 수준이라 청크 사이를 10초 띄운다
+  var REST_SWEEP_MS = 45000;  // 스트림 실패 시 보조 수집 시작 간격
+  var UPBIT_GAP = 10000;      // 업비트 교차 출처 REST는 분당 6회 수준이라 호출 사이를 10초 띄운다
   var VOL_FLOOR = 1e8;        // 최고/최저 김프 집계: 24h 거래대금 1억 원
 
   var S = {
@@ -53,6 +53,7 @@
     req: [], polls: 0, dirty: false,
     ws: null, wsState: 'idle', wsMsgs: 0, wsLastAt: 0, wsAttempts: 0, wsFallback: false, wsErr: '',
     marketsTries: 0, marketsErr: '', marketsTrying: false, marketsLastTry: 0, sweeping: false, wsTriedAt: 0,
+    upbitAt: 0, upbitQueue: Promise.resolve(),
     restSweepAt: 0, windowErrors: []
   };
 
@@ -168,9 +169,25 @@
     });
   }
 
+  /* ---------------------------------------------------------- upbit: REST queue */
+  /* 같은 오리진에서 온 요청은 업비트가 분당 6회 수준으로 제한하고, 초과분 429에는
+     Access-Control-Allow-Origin 이 없어 fetch 가 CORS 오류가 된다. 그래서 업비트로 가는
+     REST 호출을 한 줄로 세우고 10초 간격을 지킨다. */
+  function upbitSlot() {
+    S.upbitQueue = S.upbitQueue.then(function () {
+      var wait = Math.max(0, UPBIT_GAP - (Date.now() - S.upbitAt));
+      return sleep(wait).then(function () { S.upbitAt = Date.now(); });
+    });
+    return S.upbitQueue;
+  }
+
+  function upbitFetch(name, url, timeout) {
+    return upbitSlot().then(function () { return track(name, url, request(url, timeout)); });
+  }
+
   /* ---------------------------------------------------------- upbit: markets */
   function loadMarkets() {
-    return track('upbit-markets', API.upbitMarkets, request(API.upbitMarkets, 15000)).then(function (list) {
+    return upbitFetch('upbit-markets', API.upbitMarkets, 15000).then(function (list) {
       var out = [];
       (list || []).forEach(function (x) {
         if (!x || typeof x.market !== 'string' || x.market.indexOf('KRW-') !== 0) return;
@@ -301,21 +318,19 @@
     var chain = Promise.resolve();
     chunks.forEach(function (chunk, idx) {
       chain = chain.then(function () {
-        return sleep(idx === 0 ? 0 : REST_CHUNK_GAP).then(function () {
-          if (wsAlive()) return null;   // 그새 스트림이 살아나면 REST는 건너뛴다
-          var url = API.upbitTicker + chunk.join(',');
-          return track('upbit-rest-' + (idx + 1), url, request(url, 15000)).then(function (list) {
-            (list || []).forEach(function (t) {
-              if (!t || !t.market) return;
-              S.tickers[t.market.slice(4)] = {
-                market: t.market, trade_price: t.trade_price,
-                signed_change_rate: t.signed_change_rate,
-                acc_trade_price_24h: t.acc_trade_price_24h
-              };
-            });
-            S.dirty = true;
-          }).catch(function () { return null; });
-        });
+        if (wsAlive()) return null;   // 그새 스트림이 살아나면 REST는 건너뛴다
+        var url = API.upbitTicker + chunk.join(',');
+        return upbitFetch('upbit-rest-' + (idx + 1), url, 15000).then(function (list) {
+          (list || []).forEach(function (t) {
+            if (!t || !t.market) return;
+            S.tickers[t.market.slice(4)] = {
+              market: t.market, trade_price: t.trade_price,
+              signed_change_rate: t.signed_change_rate,
+              acc_trade_price_24h: t.acc_trade_price_24h
+            };
+          });
+          S.dirty = true;
+        }).catch(function () { return null; });
       });
     });
     chain.then(function () {
