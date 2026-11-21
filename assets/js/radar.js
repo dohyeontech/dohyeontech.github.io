@@ -411,18 +411,21 @@
   }
 
   function loadFx() {
-    var i = 0;
-    function next() {
-      if (i >= FX_SOURCES.length) return Promise.reject(new Error('no fx source'));
-      var src = FX_SOURCES[i++];
+    // 세 곳을 동시에 불러 가장 최근 고시 날짜의 값을 쓴다 — 하루 늦은 고시값이 김프를 통째로 밀어 버리기 때문.
+    var picks = FX_SOURCES.map(function (src, order) {
       return track('fx:' + src.id, src.url, request(src.url, 10000)).then(function (data) {
         var out = src.parse(data);
         var rate = parseFloat(out && out.rate);
         if (!(rate > 500 && rate < 3000)) throw new Error('unexpected rate');
-        return { rate: rate, date: out.date || '', source: src.id };
-      }).catch(function () { return next(); });
-    }
-    return next();
+        return { rate: rate, date: out.date || '', source: src.id, ts: Date.parse(out.date || '') || 0, order: order };
+      }).catch(function () { return null; });
+    });
+    return Promise.all(picks).then(function (list) {
+      var ok = list.filter(Boolean);
+      if (!ok.length) throw new Error('no fx source');
+      ok.sort(function (a, b) { return (b.ts - a.ts) || (a.order - b.order); });
+      return { rate: ok[0].rate, date: ok[0].date, source: ok[0].source };
+    });
   }
 
   /* ---------------------------------------------------------- compute */
