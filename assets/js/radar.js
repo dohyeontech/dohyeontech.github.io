@@ -28,6 +28,8 @@
   var FX_SOURCES = [
     { id: 'open.er-api.com', url: 'https://open.er-api.com/v6/latest/USD',
       parse: function (d) { return { rate: d && d.rates && d.rates.KRW, date: (d && d.time_last_update_utc) || '' }; } },
+    { id: 'currency-api.pages.dev', url: 'https://latest.currency-api.pages.dev/v1/currencies/usd.json',
+      parse: function (d) { return { rate: d && d.usd && d.usd.krw, date: (d && d.date) || '' }; } },
     { id: 'fawazahmed0/currency-api', url: 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.json',
       parse: function (d) { return { rate: d && d.usd && d.usd.krw, date: (d && d.date) || '' }; } },
     { id: 'frankfurter.dev', url: 'https://api.frankfurter.dev/v1/latest?base=USD&symbols=KRW',
@@ -754,7 +756,7 @@
       if (!S.polling && S.nextAt && now >= S.nextAt && !document.hidden) loadCycle();
       if (S.wsFallback && !wsAlive() && now - S.restSweepAt > REST_SWEEP_MS && !document.hidden) restSweep();
       if (!wsAlive() && !S.wsFallback && S.markets && now - (S.wsLastAt || 0) > 45000 && S.wsAttempts < 2) connectUpbit();
-      if (S.wsFallback && !wsAlive() && now - (S.wsTriedAt || 0) > 300000 && S.markets) { S.wsAttempts = 0; connectUpbit(); }
+      if (S.wsFallback && !wsAlive() && now - (S.wsTriedAt || 0) > 120000 && S.markets) { S.wsAttempts = 0; connectUpbit(); }
     } else {
       el.timer.textContent = '일시정지됨';
     }
