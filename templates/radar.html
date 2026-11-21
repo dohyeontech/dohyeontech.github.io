@@ -127,7 +127,7 @@
     <div class="rsec__body">
       <ul>
         <li><strong>업비트</strong> <code>wss://api.upbit.com/websocket/v1</code> — ticker 스트림으로 KRW 마켓 현재가·24시간 거래대금·등락률을 실시간 수신. 마켓 코드 목록만 <code>api.upbit.com/v1/market/all</code>에서 10분에 한 번 받습니다.</li>
-        <li><strong>업비트 REST를 폴링하지 않는 이유</strong> <code>/v1/ticker</code>는 <code>Origin</code>이 붙은 브라우저 요청을 초당 1회 수준으로 조이고, 초과분에는 429를 돌려주는데 그 응답에는 <code>Access-Control-Allow-Origin</code>이 없습니다. 300종을 3번에 나눠 15초마다 부르는 방식은 그대로 CORS 오류가 됩니다. 그래서 시세는 스트림으로 받고, 스트림이 막히는 네트워크에서는 청크를 10초씩 띄운 REST 보조 수집(약 40초 주기)으로 내려갑니다.</li>
+        <li><strong>업비트 REST를 폴링하지 않는 이유</strong> <code>/v1/ticker</code>는 <code>Origin</code>이 붙은 브라우저 요청을 초당 1회 수준으로 조이고, 초과분에는 429를 돌려주는데 그 응답에는 <code>Access-Control-Allow-Origin</code>이 없습니다. 300종을 3번에 나눠 15초마다 부르는 방식은 그대로 CORS 오류가 됩니다. 그래서 시세는 스트림으로 받고, 스트림이 막히는 네트워크에서는 청크를 10초씩 띄운 REST 보조 수집(약 60초 주기)으로 내려갑니다.</li>
         <li><strong>바이낸스</strong> <code>api.binance.com/api/v3/ticker/price</code> — 현물 USDT 가격(15초). <code>fapi.binance.com/fapi/v1/premiumIndex</code> — 선물 마크가격, 현재 펀딩비, 다음 정산 시각. 앞 주소가 지역 제한(HTTP 451)으로 막히면 <code>data-api.binance.vision</code> 미러, 펀딩은 Gate.io 공개 API로 대체하고 배지에 출처를 표시합니다.</li>
         <li><strong>환율</strong> 공개 환율 API 4곳을 동시에 불러 <strong>가장 최근 고시 날짜</strong>의 값을 씁니다(currency-api.pages.dev · open.er-api.com · fawazahmed0 jsDelivr · frankfurter). 하루 늦은 고시값을 쓰면 김프 전체가 그만큼 밀리기 때문입니다. 어느 출처의 며칠치인지 카드에 적고 5분 캐시합니다.</li>
         <li><strong>비교 대상</strong>은 업비트 KRW 마켓 중 바이낸스에 같은 티커의 USDT 현물 페어가 있는 종목입니다. 업비트에만 상장된 코인은 김프를 계산할 수 없어 표에서 빠지고, 상단에 비교 가능 종목 수를 적습니다.</li>

@@ -55,7 +55,7 @@
     polling: false, lastPollAt: 0, nextAt: 0,
     req: [], polls: 0, dirty: false,
     ws: null, wsState: 'idle', wsMsgs: 0, wsLastAt: 0, wsAttempts: 0, wsFallback: false, wsErr: '',
-    marketsTries: 0, marketsErr: '', marketsTrying: false, marketsLastTry: 0, sweeping: false, wsTriedAt: 0,
+    marketsTries: 0, marketsErr: '', marketsTrying: false, marketsLastTry: 0, sweeping: false, wsTriedAt: 0, wsFailAt: 0,
     upbitAt: 0, upbitQueue: Promise.resolve(),
     restSweepAt: 0, windowErrors: []
   };
@@ -253,6 +253,7 @@
       S.wsState = 'open';
       S.wsAttempts = 0;
       S.wsFallback = false;
+      S.wsFailAt = 0;
       // 같은 type 구독 요청은 마지막 것만 유효하므로 300종을 한 메시지로 보낸다.
       var codes = S.markets.map(function (m) { return m.code; });
       try {
@@ -297,8 +298,10 @@
   function scheduleWsRetry() {
     S.wsAttempts++;
     S.wsTriedAt = Date.now();
-    if (S.wsAttempts >= 2) S.wsFallback = true;   // 2회 실패하면 REST 보조 수집으로 내려간다
+    S.wsFailAt = S.wsFailAt || Date.now();
+    if (S.wsAttempts >= 3) S.wsFallback = true;   // 3회 실패하면 REST 보조 수집으로 내려간다
     var wait = Math.min(30000, 2000 * Math.pow(2, Math.min(S.wsAttempts - 1, 4)));
+    if (S.wsAttempts === 1) wait = 2000;
     updateStatus();
     setTimeout(function () {
       if (!wsAlive()) connectUpbit();
@@ -319,6 +322,7 @@
 
   function restSweep() {
     if (!S.markets || !S.markets.length) return;
+    if (S.wsFailAt && Date.now() - S.wsFailAt < 20000) return;   // 스트림 첫 실패 직후엔 업비트 REST 할당량을 건드리지 않는다
     if (S.sweeping) return;
     if (Date.now() - S.restSweepAt < REST_SWEEP_MS) return;
     S.sweeping = true;
