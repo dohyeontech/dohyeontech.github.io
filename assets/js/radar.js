@@ -50,7 +50,7 @@
     sort: 'premium-desc', query: '', paused: false,
     polling: false, lastPollAt: 0, nextAt: 0,
     req: [], polls: 0, dirty: false,
-    ws: null, wsState: 'idle', wsMsgs: 0, wsLastAt: 0, wsAttempts: 0, wsFallback: false,
+    ws: null, wsState: 'idle', wsMsgs: 0, wsLastAt: 0, wsAttempts: 0, wsFallback: false, wsErr: '',
     marketsTries: 0, marketsErr: '', marketsTrying: false, marketsLastTry: 0,
     restSweepAt: 0, windowErrors: []
   };
@@ -263,11 +263,12 @@
     };
 
     ws.onerror = function () {
-      if (S.wsState !== 'open') S.wsState = 'failed';
+      if (S.wsState !== 'open') { S.wsState = 'failed'; S.wsErr = S.wsErr || 'error event'; }
     };
 
-    ws.onclose = function () {
+    ws.onclose = function (ev) {
       S.wsState = S.wsMsgs ? 'closed' : 'failed';
+      S.wsErr = 'close ' + ((ev && ev.code) || '?') + ((ev && ev.reason) ? ' ' + ev.reason : '');
       S.ws = null;
       if (!wsAlive()) scheduleWsRetry();
       updateStatus();
@@ -667,7 +668,7 @@
       fx: S.fx,
       spotSource: S.spotSource,
       futuresSource: S.futSource,
-      upbit: { state: S.wsState, messages: S.wsMsgs, lastAt: S.wsLastAt, fallback: S.wsFallback, tickers: Object.keys(S.tickers).length },
+      upbit: { state: S.wsState, messages: S.wsMsgs, lastAt: S.wsLastAt, fallback: S.wsFallback, err: S.wsErr, tickers: Object.keys(S.tickers).length },
       markets: { tries: S.marketsTries, err: S.marketsErr, count: (S.markets && S.markets.length) || 0 },
       restSweepAt: S.restSweepAt || null,
       counts: {
@@ -716,6 +717,30 @@
     if (!p) { S.nextAt = Date.now() + POLL_MS; if (!wsAlive() && !S.wsFallback) connectUpbit(); }
     updateStatus();
     tick();
+  }
+
+
+  /* TEMP PROBE (?wsprobe=1) — remove before release */
+  function wsProbe() {
+    var urls = [
+      'wss://api.upbit.com/websocket/v1',
+      'wss://stream.binance.com:9443/ws/btcusdt@trade',
+      'wss://ws.postman-echo.com/raw'
+    ];
+    var out = [];
+    window.__wsProbe = out;
+    urls.forEach(function (u, i) {
+      var rec = { url: u, opened: false, code: null, reason: '', ms: null };
+      out.push(rec);
+      var t0 = Date.now();
+      var done = false;
+      var w;
+      try { w = new WebSocket(u); } catch (e) { rec.reason = 'ctor ' + e; return; }
+      w.onopen = function () { rec.opened = true; rec.ms = Date.now() - t0; try { w.close(); } catch (e) {} };
+      w.onerror = function () { if (!done) { rec.reason = rec.reason || 'error'; } };
+      w.onclose = function (ev) { rec.code = ev && ev.code; if (!rec.opened) rec.reason = (ev && ev.reason) || rec.reason; rec.ms = Date.now() - t0; };
+      setTimeout(function () { try { if (!rec.opened) w.close(); } catch (e) {} }, 8000);
+    });
   }
 
   /* ---------------------------------------------------------- init */
@@ -776,6 +801,7 @@
 
     setInterval(tick, 1000);
     publishDiag();
+    if (/[?&]wsprobe=1/.test(location.search)) wsProbe();
 
     // 1) 마켓 목록 → 2) 업비트 스트림 연결 → 3) 바이낸스·환율 폴링
     ensureMarkets(true).then(function () {
