@@ -476,7 +476,13 @@
     var tetherPrem = (rate > 0 && usdt > 0) ? ((usdt / rate) - 1) * 100 : null;
 
     el['fx-rate'].innerHTML = rate ? fmtRate(rate) + '<small>원/USD</small>' : '--';
-    el['fx-meta'].textContent = fx ? fx.source + (fx.date ? ' · ' + fx.date.slice(0, 22) + ' 고시' : '') : '환율 API 응답 없음';
+    var fxLabel = fx ? String(fx.source).replace('currency-api.pages.dev', 'pages.dev').replace('fawazahmed0/currency-api', 'fawazahmed0').replace('open.er-api.com', 'er-api.com') : '';
+    var fxWhen = '';
+    if (fx && fx.date) {
+      var dt = new Date(fx.date);
+      fxWhen = isNaN(dt.getTime()) ? String(fx.date).slice(5, 10) : (dt.getMonth() + 1) + '-' + dt.getDate();
+    }
+    el['fx-meta'].textContent = fx ? (fxLabel + (fxWhen ? ' · ' + fxWhen + ' 고시' : '')) : '환율 API 응답 없음';
     el['fx-tether'].textContent = usdt > 0
       ? '테더 환산 ' + fmtRate(usdt) + '원 ' + (tetherPrem == null ? '' : '(' + pct(tetherPrem, 2) + ')')
       : '테더 환산 --';
@@ -532,9 +538,14 @@
   }
 
   /* ---------------------------------------------------------- table */
+  function flagged(r) {
+    return r.prem != null && Math.abs(r.prem) >= COLLISION_PCT;
+  }
+
   var SORTS = {
-    'premium-desc': function (a, b) { return cmp(a.prem, b.prem, -1) || cmp(a.vol, b.vol, -1); },
-    'premium-asc': function (a, b) { return cmp(a.prem, b.prem, 1) || cmp(a.vol, b.vol, -1); },
+    // 같은 티커의 다른 자산으로 보이는 값(?)은 비교 대상이 아니므로 정렬에서 맨 뒤로 보낸다.
+    'premium-desc': function (a, b) { return (flagged(a) - flagged(b)) || cmp(a.prem, b.prem, -1) || cmp(a.vol, b.vol, -1); },
+    'premium-asc': function (a, b) { return (flagged(a) - flagged(b)) || cmp(a.prem, b.prem, 1) || cmp(a.vol, b.vol, -1); },
     'funding-abs': function (a, b) {
       return cmp(a.funding == null ? null : Math.abs(a.funding), b.funding == null ? null : Math.abs(b.funding), -1) || cmp(a.vol, b.vol, -1);
     },
