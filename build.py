@@ -47,6 +47,10 @@ TIP_NOTE = ('ETH · USDT · USDC는 ERC-20 계열 네트워크(Ethereum · Base 
 SUBSCRIBE_MAIL_SUBJECT = '구독 신청'
 SUBSCRIBE_MAIL_BODY = '이 주소로 도현의 테크브리프 새 글 알림을 받고 싶습니다.'
 
+# follow.it 무료 이메일 뉴스레터 — 피드 등록 후 받은 따라가기 페이지 주소.
+# 비어 있으면 이메일 버튼을 렌더하지 않고 RSS·JSON 만 남는다(가짜 링크 금지).
+SUBSCRIBE_EMAIL_URL = 'https://follow.it/beovvz'
+
 
 # ---------------------------------------------------------------- front matter
 def parse_front_matter(text):
@@ -327,7 +331,7 @@ def absolutize(html_text):
 
 
 def subscribe_block(where=''):
-    """RSS + JSON Feed 구독 박스. 포스트 하단과 /about/에서 같은 마크업을 쓴다."""
+    """이메일(follow.it) + RSS + JSON Feed 구독 박스. 포스트 하단과 /about/에서 같은 마크업을 쓴다."""
     import urllib.parse
     mail = 'mailto:%s?subject=%s&body=%s' % (
         SITE['email'],
@@ -335,24 +339,30 @@ def subscribe_block(where=''):
         urllib.parse.quote(SUBSCRIBE_MAIL_BODY),
     )
     anchor = ' id="subscribe"' if where == 'about' else ''
+    email_btn = ''
+    if SUBSCRIBE_EMAIL_URL:
+        email_btn = (
+            '<a class="subbtn subbtn--mail" href="%s" target="_blank" rel="noopener">'
+            '<span class="subbtn__k">EMAIL</span><span class="subbtn__v">메일로 구독</span></a>'
+            % esc(SUBSCRIBE_EMAIL_URL))
     return (
         '<aside class="subscribe"%s>'
         '<div class="subscribe__copy">'
         '<div class="subscribe__label">SUBSCRIBE</div>'
         '<h2 class="subscribe__title">새 리포트를 받아보세요</h2>'
-        '<p class="subscribe__desc">RSS 리더기나 JSON 피드를 읽는 앱에 주소를 넣으면 새 글이 발행될 때마다 자동으로 들어옵니다. '
-        '메일 알림을 원하시면 아래 구독 신청을 눌러 한 통만 보내주세요.</p>'
+        '<p class="subscribe__desc">메일로 받으려면 아래 <b>메일로 구독</b>을 눌러 주소만 넣으면 됩니다. '
+        'RSS 리더기나 JSON 피드를 읽는 앱을 쓴다면 <code>/feed.xml</code>·<code>/feed.json</code> 주소를 그대로 넣어도 됩니다.</p>'
         '</div>'
         '<div class="subscribe__actions">'
+        '%s'
         '<a class="subbtn" href="/feed.xml">'
         '<span class="subbtn__k">RSS</span><span class="subbtn__v">/feed.xml</span></a>'
         '<a class="subbtn" href="/feed.json">'
         '<span class="subbtn__k">JSON FEED</span><span class="subbtn__v">/feed.json</span></a>'
-        '<a class="subbtn subbtn--mail" href="%s">'
-        '<span class="subbtn__k">EMAIL</span><span class="subbtn__v">구독 신청 메일</span></a>'
         '</div>'
-        '<p class="subscribe__note">보내주신 주소는 알림 발송에만 쓰고 공개하지 않습니다. 언제든 한 통으로 해지됩니다.</p>'
-        '</aside>' % (anchor, mail)
+        '<p class="subscribe__note">주소는 새 글 알림 발송에만 쓰고 공개하지 않습니다. 받은 메일 맨 아래 링크로 언제든 한 번에 해지됩니다. '
+        '구독이 잘 안 되면 <a href="%s">%s</a> 로 한 줄 보내주세요.</p>'
+        '</aside>' % (anchor, email_btn, mail, esc(SITE['email']))
     )
 
 
