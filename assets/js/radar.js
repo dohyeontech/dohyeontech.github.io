@@ -768,29 +768,6 @@
   }
 
 
-  /* TEMP PROBE (?wsprobe=1) — remove before release */
-  function wsProbe() {
-    var urls = [
-      'wss://api.upbit.com/websocket/v1',
-      'wss://stream.binance.com:9443/ws/btcusdt@trade',
-      'wss://ws.postman-echo.com/raw'
-    ];
-    var out = [];
-    window.__wsProbe = out;
-    urls.forEach(function (u, i) {
-      var rec = { url: u, opened: false, code: null, reason: '', ms: null };
-      out.push(rec);
-      var t0 = Date.now();
-      var done = false;
-      var w;
-      try { w = new WebSocket(u); } catch (e) { rec.reason = 'ctor ' + e; return; }
-      w.onopen = function () { rec.opened = true; rec.ms = Date.now() - t0; try { w.close(); } catch (e) {} };
-      w.onerror = function () { if (!done) { rec.reason = rec.reason || 'error'; } };
-      w.onclose = function (ev) { rec.code = ev && ev.code; if (!rec.opened) rec.reason = (ev && ev.reason) || rec.reason; rec.ms = Date.now() - t0; };
-      setTimeout(function () { try { if (!rec.opened) w.close(); } catch (e) {} }, 8000);
-    });
-  }
-
   /* ---------------------------------------------------------- init */
   function init() {
     el.dot = $('live-dot');
@@ -849,7 +826,6 @@
 
     setInterval(tick, 1000);
     publishDiag();
-    if (/[?&]wsprobe=1/.test(location.search)) wsProbe();
 
     // 1) 마켓 목록 → 2) 업비트 스트림 연결 → 3) 바이낸스·환율 폴링
     ensureMarkets(true).then(function () {
