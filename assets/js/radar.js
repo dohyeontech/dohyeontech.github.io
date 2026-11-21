@@ -39,7 +39,7 @@
   var POLL_MS = 15000;        // 바이낸스 현물·선물·환율 갱신 주기
   var MARKETS_TTL = 600000;   // 업비트 마켓 목록 캐시 10분
   var FX_TTL = 300000;        // 환율 캐시 5분
-  var REST_SWEEP_MS = 45000;  // 스트림 실패 시 보조 수집 시작 간격
+  var REST_SWEEP_MS = 60000;  // 스트림 실패 시 보조 수집 시작 간격 (3청크 = 분당 3회)
   var UPBIT_GAP = 10000;      // 업비트 교차 출처 REST는 분당 6회 수준이라 호출 사이를 10초 띄운다
   var VOL_FLOOR = 1e8;        // 최고/최저 김프 집계: 24h 거래대금 1억 원
   var COLLISION_PCT = 30;     // |김프| 30% 초과는 티커 충돌(다른 자산) 의심값으로 본다
@@ -747,7 +747,7 @@
       updateStatus();
     }
 
-    if (!S.markets && !S.marketsTrying && now - S.marketsLastTry > 8000 && !document.hidden) {
+    if (!S.markets && !S.marketsTrying && now - S.marketsLastTry > 12000 && !document.hidden) {
       ensureMarkets(true);
     }
 
