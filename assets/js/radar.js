@@ -51,6 +51,7 @@
     polling: false, lastPollAt: 0, nextAt: 0,
     req: [], polls: 0, dirty: false,
     ws: null, wsState: 'idle', wsMsgs: 0, wsLastAt: 0, wsAttempts: 0, wsFallback: false,
+    marketsTries: 0, marketsErr: '', marketsTrying: false, marketsLastTry: 0,
     restSweepAt: 0, windowErrors: []
   };
 
@@ -156,10 +157,12 @@
 
   function track(name, url, promise) {
     return promise.then(function (r) {
-      S.req.push({ name: name, url: url, ok: true, status: 200, ms: r.ms });
+      S.req.push({ name: name, url: url, ok: true, status: 200, ms: r.ms, at: Date.now() });
+      if (S.req.length > 40) S.req = S.req.slice(-40);
       return r.data;
     }, function (err) {
-      S.req.push({ name: name, url: url, ok: false, error: String((err && err.message) || err) });
+      S.req.push({ name: name, url: url, ok: false, error: String((err && err.message) || err), at: Date.now() });
+      if (S.req.length > 40) S.req = S.req.slice(-40);
       throw err;
     });
   }
@@ -174,6 +177,33 @@
       });
       S.marketsAt = Date.now();
       return out;
+    });
+  }
+
+  /* 업비트 마켓 목록은 브라우저(Origin) 요청 할당량이 빠듯해 실패가 나기 쉽다.
+     실패하면 8초 간격으로 다시 시도하고, 성공해야 스트림을 연결한다. */
+  function ensureMarkets(force) {
+    if (S.marketsTrying) return Promise.resolve(S.markets);
+    if (!force && S.markets && (Date.now() - S.marketsAt) < MARKETS_TTL) return Promise.resolve(S.markets);
+    S.marketsTrying = true;
+    S.marketsTries++;
+    S.marketsLastTry = Date.now();
+    return loadMarkets().then(function (list) {
+      S.marketsTrying = false;
+      if (!list || !list.length) {
+        S.marketsErr = 'empty list';
+        return S.markets;
+      }
+      S.markets = list;
+      S.marketsErr = '';
+      connectUpbit();
+      updateStatus();
+      return S.markets;
+    }, function (err) {
+      S.marketsTrying = false;
+      S.marketsErr = String((err && err.message) || err);
+      updateStatus();
+      return S.markets;
     });
   }
 
@@ -255,7 +285,7 @@
   }
 
   function restSweep() {
-    if (!S.markets || !S.markets.length || S.polling) return;
+    if (!S.markets || !S.markets.length) return;
     if (Date.now() - S.restSweepAt < REST_SWEEP_MS) return;
     S.restSweepAt = Date.now();
     var codes = S.markets.map(function (m) { return m.code; });
@@ -558,25 +588,29 @@
   }
 
   function updateStatus() {
-    var fail = S.req.filter(function (r) { return !r.ok; });
+    var recent = S.req.slice(-8);
+    var fail = recent.filter(function (r) { return !r.ok; });
     if (S.paused) {
       el.dot.className = 'dot is-stale';
       el['status-text'].textContent = '일시정지 — 화면 갱신 멈춤 (연결은 유지)';
+    } else if (!S.markets) {
+      el.dot.className = 'dot is-stale';
+      el['status-text'].textContent = '업비트 마켓 목록 요청 중' + (S.marketsTries > 1 ? ' (재시도 ' + S.marketsTries + ')' : '') + (S.marketsErr ? ' · ' + S.marketsErr : '');
     } else if (wsAlive() && S.wsMsgs > 0) {
       el.dot.className = 'dot is-live';
       el['status-text'].textContent = '업비트 스트림 수신 중 · 바이낸스·펀딩 ' + stamp(S.lastPollAt) + ' 갱신';
     } else if (S.wsFallback) {
       el.dot.className = 'dot is-stale';
       el['status-text'].textContent = '스트림 연결 실패 — REST 보조 수집(60초)으로 표시 중';
-    } else if (S.polling) {
+    } else if (S.polling && !S.polls) {
       el.dot.className = 'dot is-live';
       el['status-text'].textContent = '거래소 API 연결 중…';
-    } else if (fail.length && fail.length === S.req.length) {
+    } else if (fail.length && fail.length === recent.length) {
       el.dot.className = 'dot is-stale';
       el['status-text'].textContent = '모든 요청 실패 — 네트워크를 확인하세요';
     } else {
       el.dot.className = 'dot is-wait';
-      el['status-text'].textContent = '업비트 스트림 연결 중…';
+      el['status-text'].textContent = '업비트 스트림 연결 중… (' + S.wsState + ')';
     }
     sourceChips();
   }
@@ -585,7 +619,7 @@
   function loadCycle() {
     if (S.polling) return;
     S.polling = true;
-    S.req = [];
+    S.cycleStart = S.req.length;
     updateStatus();
 
     var fxP = (S.fx && (Date.now() - S.fxAt) < FX_TTL) ? Promise.resolve(S.fx) : loadFx().catch(function () { return S.fx; });
@@ -634,6 +668,8 @@
       spotSource: S.spotSource,
       futuresSource: S.futSource,
       upbit: { state: S.wsState, messages: S.wsMsgs, lastAt: S.wsLastAt, fallback: S.wsFallback, tickers: Object.keys(S.tickers).length },
+      markets: { tries: S.marketsTries, err: S.marketsErr, count: (S.markets && S.markets.length) || 0 },
+      restSweepAt: S.restSweepAt || null,
       counts: {
         krwMarkets: (S.markets && S.markets.length) || 0,
         compared: S.rows.length,
@@ -656,6 +692,10 @@
       renderKpis();
       renderTable();
       updateStatus();
+    }
+
+    if (!S.markets && !S.marketsTrying && now - S.marketsLastTry > 8000 && !document.hidden) {
+      ensureMarkets(true);
     }
 
     if (!S.paused) {
@@ -701,9 +741,10 @@
     });
 
     $('btn-refresh').addEventListener('click', function () {
-      if (!wsAlive()) connectUpbit();
+      if (!S.markets) ensureMarkets(true);
+      if (!wsAlive() && S.markets) connectUpbit();
       loadCycle();
-      restSweep();
+      if (S.wsFallback) restSweep();
     });
     el.pause.addEventListener('click', function () { setPaused(!S.paused); });
 
@@ -737,10 +778,7 @@
     publishDiag();
 
     // 1) 마켓 목록 → 2) 업비트 스트림 연결 → 3) 바이낸스·환율 폴링
-    loadMarkets().catch(function () { return S.markets || []; }).then(function (markets) {
-      if (markets && markets.length) S.markets = markets;
-      connectUpbit();
-      updateStatus();
+    ensureMarkets(true).then(function () {
       loadCycle();
     });
   }

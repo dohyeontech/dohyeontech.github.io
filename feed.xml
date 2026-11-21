@@ -5,7 +5,7 @@
 <link>https://dohyeontech.github.io/</link>
 <description>제로데이·공급망 공격·AI 보안을 소스 레벨에서 분석하는 엔지니어링 저널.</description>
 <language>ko</language>
-<lastBuildDate>Sat, 21 Nov 2026 23:17:23 +0900</lastBuildDate>
+<lastBuildDate>Sat, 21 Nov 2026 23:19:14 +0900</lastBuildDate>
 <atom:link href="https://dohyeontech.github.io/feed.xml" rel="self" type="application/rss+xml"/>
 <item><title>실제 URL은 그대로, 웹은 가짜로 — Chrome 'Mirror Dimension'이 프롬프트 인젝션을 검증하는 방법</title><link>https://dohyeontech.github.io/posts/chrome-mirror-dimension-agent-security/</link><guid isPermaLink="true">https://dohyeontech.github.io/posts/chrome-mirror-dimension-agent-security/</guid><pubDate>Sat, 21 Nov 2026 09:00:00 +0900</pubDate><category>AI 보안</category><description>Chrome AI 보안팀이 11월 19일 공개한 'mirror dimension'은 실제 URL을 유지한 채 gVisor 샌드박스 안의 합성 웹으로 트래픽을 돌리는 평가 환경이다. eval awareness를 피해 URL 파라미터를 HTTP 헤더로 옮긴 이유, 사이트를 만드는 에이전트 팀, 그리고 엔지니어 1인당 하루 1,000건이라는 수치가 실제로 옮긴 병목을 1차 자료로 뜯는다.</description></item>
 <item><title>[긴급 속보] VMware vCenter 제로데이 취약점(CVE-2026-123890) 실제 악용 확인… 즉시 패치 권고</title><link>https://dohyeontech.github.io/posts/vcenter-cve-2026-123890-armory-castle/</link><guid isPermaLink="true">https://dohyeontech.github.io/posts/vcenter-cve-2026-123890-armory-castle/</guid><pubDate>Sat, 21 Nov 2026 03:20:00 +0900</pubDate><category>Security</category><description>9월 초부터 실제 침해에 쓰인 vCenter 인증 우회. 비밀번호 없이 administrator@vsphere.local 세션을 얻는 SRP-6a 경로와, 그 세션이 디렉터리 전체 탈취로 이어지는 사슬을 1차 자료로 재구성한다.</description></item>
