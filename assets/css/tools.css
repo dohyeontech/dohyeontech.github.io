@@ -457,6 +457,8 @@
   gap: 16px;
   margin-top: 16px;
 }
+.jwt-grid > div { display: flex; flex-direction: column; }
+.jwt-grid > div > .codebox { flex: 1 1 auto; }
 .json {
   margin: 0;
   font-family: var(--mono);

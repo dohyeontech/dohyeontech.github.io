@@ -6,7 +6,7 @@
     <h1 class="tool-h1">IOC 추출 · 디팡 도구</h1>
     <p class="tool-lede">
       침해 로그, 메일 원문, 분석 리포트를 그대로 붙여넣으면 IPv4·도메인·URL·MD5·SHA1·SHA256·CVE·이메일을 뽑아 종류별로 묶고 중복을 합칩니다.
-      결과는 <code>원본</code>·<code>디팡</code>·<code>리팡</code> 세 가지 표기로 바꿔 복사할 수 있습니다. 모든 처리는 이 페이지 안에서만 실행되고 입력값은 전송되지 않습니다.
+      결과는 <code>디팡</code>·<code>리팡</code> 두 가지 표기로 바꿔 복사할 수 있습니다. 모든 처리는 이 페이지 안에서만 실행되고 입력값은 전송되지 않습니다.
     </p>
     <div class="trust">
       <span class="trust__item">IN-PAGE REGEX ONLY</span>
@@ -35,8 +35,7 @@
       <div class="panel__head">
         <span class="panel__label">RESULT / <span id="ioc-count">0</span> UNIQUE</span>
         <div class="seg" role="group" aria-label="출력 표기">
-          <button type="button" data-mode="raw" class="is-on">원본</button>
-          <button type="button" data-mode="defang">디팡</button>
+          <button type="button" data-mode="defang" class="is-on">디팡</button>
           <button type="button" data-mode="refang">리팡</button>
         </div>
       </div>
