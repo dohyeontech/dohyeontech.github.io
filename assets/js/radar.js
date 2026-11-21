@@ -37,7 +37,8 @@
   var POLL_MS = 15000;        // 바이낸스 현물·선물·환율 갱신 주기
   var MARKETS_TTL = 600000;   // 업비트 마켓 목록 캐시 10분
   var FX_TTL = 300000;        // 환율 캐시 5분
-  var REST_SWEEP_MS = 60000;  // 스트림 실패 시 보조 수집 주기
+  var REST_SWEEP_MS = 40000;  // 스트림 실패 시 보조 수집 시작 간격
+  var REST_CHUNK_GAP = 10000; // 업비트 교차 출처 REST는 분당 6회 수준이라 청크 사이를 10초 띄운다
   var VOL_FLOOR = 1e8;        // 최고/최저 김프 집계: 24h 거래대금 1억 원
 
   var S = {
@@ -51,7 +52,7 @@
     polling: false, lastPollAt: 0, nextAt: 0,
     req: [], polls: 0, dirty: false,
     ws: null, wsState: 'idle', wsMsgs: 0, wsLastAt: 0, wsAttempts: 0, wsFallback: false, wsErr: '',
-    marketsTries: 0, marketsErr: '', marketsTrying: false, marketsLastTry: 0,
+    marketsTries: 0, marketsErr: '', marketsTrying: false, marketsLastTry: 0, sweeping: false, wsTriedAt: 0,
     restSweepAt: 0, windowErrors: []
   };
 
@@ -277,7 +278,8 @@
 
   function scheduleWsRetry() {
     S.wsAttempts++;
-    if (S.wsAttempts >= 3) S.wsFallback = true;   // 3회 실패하면 REST 보조 수집으로 내려간다
+    S.wsTriedAt = Date.now();
+    if (S.wsAttempts >= 2) S.wsFallback = true;   // 2회 실패하면 REST 보조 수집으로 내려간다
     var wait = Math.min(30000, 2000 * Math.pow(2, Math.min(S.wsAttempts - 1, 4)));
     updateStatus();
     setTimeout(function () {
@@ -287,8 +289,11 @@
 
   function restSweep() {
     if (!S.markets || !S.markets.length) return;
+    if (S.sweeping) return;
     if (Date.now() - S.restSweepAt < REST_SWEEP_MS) return;
+    S.sweeping = true;
     S.restSweepAt = Date.now();
+
     var codes = S.markets.map(function (m) { return m.code; });
     var chunks = [];
     for (var i = 0; i < codes.length; i += 100) chunks.push(codes.slice(i, i + 100));
@@ -296,7 +301,8 @@
     var chain = Promise.resolve();
     chunks.forEach(function (chunk, idx) {
       chain = chain.then(function () {
-        return sleep(idx === 0 ? 0 : 1300).then(function () {
+        return sleep(idx === 0 ? 0 : REST_CHUNK_GAP).then(function () {
+          if (wsAlive()) return null;   // 그새 스트림이 살아나면 REST는 건너뛴다
           var url = API.upbitTicker + chunk.join(',');
           return track('upbit-rest-' + (idx + 1), url, request(url, 15000)).then(function (list) {
             (list || []).forEach(function (t) {
@@ -312,7 +318,10 @@
         });
       });
     });
-    chain.then(function () { computeRows(); renderKpis(); renderTable(); updateStatus(); publishDiag(); });
+    chain.then(function () {
+      S.sweeping = false;
+      computeRows(); renderKpis(); renderTable(); updateStatus(); publishDiag();
+    });
   }
 
   /* ---------------------------------------------------------- binance */
@@ -562,7 +571,8 @@
       '업비트 KRW ' + ((S.markets && S.markets.length) || 0) + '종 중 바이낸스 USDT 현물 페어가 있는 ' +
       S.rows.length + '종을 비교합니다(업비트 단독 상장 ' + S.unmatched + '종 제외). ' +
       '이 중 펀딩비가 확인된 종목은 ' + futures + '종. ' +
-      '비교 종목의 업비트 24시간 거래대금 합계는 ' + nf(volSum / 1e8, 0) + '억 원.';
+      '비교 종목의 업비트 24시간 거래대금 합계는 ' + nf(volSum / 1e8, 0) + '억 원.' +
+      (S.wsFallback ? ' · 업비트 스트림이 막혀 REST 보조 수집(약 40초 주기)으로 표시 중입니다.' : '');
   }
 
   /* ---------------------------------------------------------- status */
@@ -703,7 +713,8 @@
       el.timer.textContent = S.nextAt ? '바이낸스 갱신 ' + Math.max(0, Math.round((S.nextAt - now) / 1000)) + 's' : '연결 중';
       if (!S.polling && S.nextAt && now >= S.nextAt && !document.hidden) loadCycle();
       if (S.wsFallback && !wsAlive() && now - S.restSweepAt > REST_SWEEP_MS && !document.hidden) restSweep();
-      if (!wsAlive() && !S.wsFallback && S.markets && now - (S.wsLastAt || 0) > 45000 && S.wsAttempts < 3) connectUpbit();
+      if (!wsAlive() && !S.wsFallback && S.markets && now - (S.wsLastAt || 0) > 45000 && S.wsAttempts < 2) connectUpbit();
+      if (S.wsFallback && !wsAlive() && now - (S.wsTriedAt || 0) > 300000 && S.markets) { S.wsAttempts = 0; connectUpbit(); }
     } else {
       el.timer.textContent = '일시정지됨';
     }
