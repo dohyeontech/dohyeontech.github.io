@@ -1,0 +1,143 @@
+<section class="wrap radar-page">
+  <nav class="crumbs" aria-label="위치"><a href="/">홈</a><span>/</span><span class="crumbs__here">레이더</span></nav>
+
+  <header class="radar-head">
+    <div class="eyebrow">LIVE · UPBIT KRW vs BINANCE USDT · 15s</div>
+    <h1 class="radar-h1">김프·펀딩비 레이더 — 업비트 원화가와 바이낸스 USDT가를 15초마다 맞춰 보는 화면</h1>
+    <p class="radar-lede">
+      업비트 KRW 마켓과 바이낸스 USDT 페어를 같은 시각에 받아 <strong>김치 프리미엄(김프)</strong>과
+      <strong>무기한 선물 펀딩비</strong>를 한 표에 놓았습니다. 원화 환산에는 공개 환율 API의 USD/KRW를 쓰고,
+      국내 실시간 체감 환율은 업비트 USDT 시세로 따로 보여 줍니다. 서버 없이 이 브라우저가 거래소 공개 API를 직접 호출하므로
+      중간에 값을 가공하는 곳이 없습니다.
+    </p>
+    <div class="trust">
+      <span class="trust__item">15s AUTO REFRESH</span>
+      <span class="trust__item">NO SERVER · DIRECT API</span>
+      <span class="trust__item">PUBLIC DATA ONLY</span>
+      <span class="trust__item">NOT INVESTMENT ADVICE</span>
+    </div>
+  </header>
+
+  <section class="kpis" aria-label="시장 요약">
+    <article class="kpi">
+      <div class="kpi__k">USD/KRW 기준 환율</div>
+      <div class="kpi__v" id="fx-rate">--</div>
+      <div class="kpi__sub" id="fx-meta">환율 API 연결 중…</div>
+      <div class="kpi__foot" id="fx-tether">테더 환산 환율 --</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi__k">업비트 테더 (USDT/KRW)</div>
+      <div class="kpi__v" id="usdt-price">--</div>
+      <div class="kpi__sub" id="usdt-prem">테더 김프 --</div>
+      <div class="kpi__foot">KRW-USDT · 실시간 체감 환율</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi__k">BTC 김프</div>
+      <div class="kpi__v" id="btc-prem">--</div>
+      <div class="kpi__sub" id="btc-meta">업비트 -- / 바이낸스 --</div>
+      <div class="kpi__foot">KRW-BTC vs BTCUSDT</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi__k">BTC 펀딩비 (8h)</div>
+      <div class="kpi__v" id="btc-funding">--</div>
+      <div class="kpi__sub" id="btc-funding-ann">연환산 --</div>
+      <div class="kpi__foot" id="btc-next">다음 펀딩 --</div>
+    </article>
+    <article class="kpi kpi--rank">
+      <div class="kpi__k">최고 김프 / 최저 김프</div>
+      <div class="rank"><span class="rank__tag">HIGH</span><span class="rank__sym" id="top-sym">--</span><span class="rank__val" id="top-val">--</span></div>
+      <div class="rank"><span class="rank__tag rank__tag--low">LOW</span><span class="rank__sym" id="low-sym">--</span><span class="rank__val" id="low-val">--</span></div>
+      <div class="kpi__foot">24h 거래대금 1억 원 이상 종목</div>
+    </article>
+  </section>
+
+  <section class="rc" aria-label="레이더 조작">
+    <div class="rc__row">
+      <div class="rc__status">
+        <span class="dot" id="live-dot" aria-hidden="true"></span>
+        <span id="status-text">거래소 API 연결 중…</span>
+        <span class="rc__count" id="row-count">—</span>
+      </div>
+      <div class="rc__actions">
+        <span class="rc__timer" id="refresh-timer">다음 갱신 --</span>
+        <button class="rc__btn" id="btn-refresh" type="button">새로고침</button>
+        <button class="rc__btn rc__btn--toggle" id="btn-pause" type="button" aria-pressed="false">일시정지</button>
+      </div>
+    </div>
+    <div class="rc__row rc__row--filters">
+      <label class="rc__search">
+        <span class="sr-only">심볼 검색</span>
+        <input id="filter-input" type="search" inputmode="search" autocomplete="off" spellcheck="false" placeholder="심볼 검색 — BTC, 이더, XRP …">
+      </label>
+      <div class="rc__sorts" role="group" aria-label="정렬 기준">
+        <button class="rc__sort is-on" type="button" data-sort="premium-desc">김프 높은순</button>
+        <button class="rc__sort" type="button" data-sort="premium-asc">김프 낮은순</button>
+        <button class="rc__sort" type="button" data-sort="funding-abs">펀딩비 절대값</button>
+        <button class="rc__sort" type="button" data-sort="volume-desc">거래대금순</button>
+      </div>
+    </div>
+    <div class="rc__sources" id="source-chips" aria-live="polite"></div>
+  </section>
+
+  <div class="rt" id="table-wrap">
+    <table class="rt__table" id="radar-table">
+      <caption class="sr-only">업비트 KRW 마켓과 바이낸스 USDT 페어의 가격, 김치 프리미엄, 펀딩비, 24시간 거래대금 비교</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="rt__sym">심볼</th>
+          <th scope="col" class="rt__num">업비트 (KRW)</th>
+          <th scope="col" class="rt__num">바이낸스 (USDT)</th>
+          <th scope="col" class="rt__num rt__col--prem">김프</th>
+          <th scope="col" class="rt__num rt__col--fund">펀딩비 <span class="rt__hint">8h / 연환산</span></th>
+          <th scope="col" class="rt__num">24h 거래대금 (억)</th>
+          <th scope="col" class="rt__num">24h 등락</th>
+        </tr>
+      </thead>
+      <tbody id="radar-body">
+        <tr class="rt__placeholder"><td colspan="7">거래소 공개 API에서 시세를 받아오는 중입니다…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="rt__foot" id="table-foot">표시할 종목을 계산하는 중…</p>
+
+  <section class="rsec">
+    <div class="rsec__head">HOW IT READS</div>
+    <h2 class="rsec__title">숫자를 읽는 방법</h2>
+    <div class="rsec__grid">
+      <div class="rnote">
+        <div class="rnote__k">김프 = 업비트 원화가 ÷ (바이낸스 USDT가 × USD/KRW) − 1</div>
+        <p>같은 코인이 국내에서 얼마나 더 비싸게 거래되는지를 봅니다. 값이 +면 국내가 비싼 상태, −면 국내가 싼 상태(역프리미엄)입니다. 바이낸스는 현물 <code>ticker/price</code>, 업비트는 <code>ticker</code>의 마지막 체결가를 씁니다.</p>
+      </div>
+      <div class="rnote">
+        <div class="rnote__k">테더 김프는 환율 오차를 알려 줍니다</div>
+        <p>기준 환율은 하루 한 번 고시되는 공개 환율이라 은행 실시간 고시와 차이가 납니다. 업비트의 USDT 시세는 국내 참가자가 실제로 원화를 바꾸는 값이므로, 두 값의 차이를 테더 김프로 함께 보여 줍니다. 김프를 읽을 때 이만큼은 환율 기준 차이일 수 있다는 뜻입니다.</p>
+      </div>
+      <div class="rnote">
+        <div class="rnote__k">펀딩비는 8시간마다 교환되는 비용</div>
+        <p>무기한 선물에서 롱·숏이 서로 주고받는 비율입니다. +면 롱이 숏에게 지불(롱 과열), −면 반대입니다. 표의 연환산은 8시간 값을 하루 3회, 365일로 늘린 단순 환산이며 실제 정산 주기가 4시간인 종목은 값이 달라집니다. 펀딩 주기는 <code>premiumIndex</code>의 다음 정산 시각으로 확인합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="rsec">
+    <div class="rsec__head">SOURCES &amp; LIMITS</div>
+    <h2 class="rsec__title">데이터 출처와 한계</h2>
+    <div class="rsec__body">
+      <ul>
+        <li><strong>업비트</strong> <code>api.upbit.com/v1/market/all</code>, <code>/v1/ticker</code> — KRW 마켓 현재가, 24시간 거래대금(원), 24시간 등락률.</li>
+        <li><strong>바이낸스</strong> <code>api.binance.com/api/v3/ticker/price</code> — 현물 USDT 가격. <code>fapi.binance.com/fapi/v1/premiumIndex</code> — 선물 마크가격, 현재 펀딩비, 다음 정산 시각. (앞 주소가 지역 제한으로 막히면 <code>data-api.binance.vision</code> 미러, 펀딩은 Gate.io 공개 API로 대체하며 화면 배지에 출처를 표시합니다.)</li>
+        <li><strong>환율</strong> 공개 환율 API 3곳을 순서대로 시도합니다(open.er-api.com → fawazahmed0 currency-api → frankfurter). 고시 시각을 카드에 함께 적습니다.</li>
+        <li><strong>비교 대상</strong>은 업비트 KRW 마켓 중 바이낸스에 같은 티커의 USDT 현물 페어가 있는 종목입니다. 업비트에만 상장된 코인은 김프를 계산할 수 없어 표에서 빠지고, 상단에 비교 가능 종목 수를 적습니다.</li>
+        <li><strong>호가 차이</strong> 업비트와 바이낸스의 마지막 체결 시각은 몇 초 어긋날 수 있고, 저유동성 종목은 호가 한 단위가 김프를 몇 % 움직입니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <aside class="rdisclaimer" role="note">
+    <strong>공개 API 시세 기준 정보 제공용이며 투자 조언이 아닙니다.</strong>
+    이 화면은 매수·매도 신호를 제공하지 않습니다. 김프와 펀딩비는 차익거래 기회로 보이더라도 전송 지연·입출금 정지·수수료·세금·환전 비용으로 손실이 날 수 있습니다. 표시 값은 거래소와 환율 API의 응답을 그대로 계산한 것으로, 표시 오류나 지연이 있을 수 있습니다.
+  </aside>
+
+  {{TIP}}
+</section>

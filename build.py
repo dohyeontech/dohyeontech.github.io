@@ -419,6 +419,7 @@ def main():
             'nav_home': 'is-active' if active == 'home' else '',
             'nav_archive': 'is-active' if active == 'archive' else '',
             'nav_tools': 'is-active' if active == 'tools' else '',
+            'nav_radar': 'is-active' if active == 'radar' else '',
             'year': datetime.date.today().year,
             'author': SITE['author'],
             'email': SITE['email'],
@@ -530,14 +531,14 @@ def main():
         parts += [ld(o) for o in ld_objs]
         return '\n'.join(parts)
 
-    def webapp(name, desc, path, features):
+    def webapp(name, desc, path, features, category='SecurityApplication'):
         return {
             '@context': 'https://schema.org',
             '@type': 'WebApplication',
             'name': name,
             'url': SITE['url'] + path,
             'description': desc,
-            'applicationCategory': 'SecurityApplication',
+            'applicationCategory': category,
             'operatingSystem': 'Any (web browser)',
             'browserRequirements': 'JavaScript; runs entirely in the browser, no upload',
             'isAccessibleForFree': True,
@@ -602,11 +603,26 @@ def main():
          ]),
          title_raw='CVSS v3.1 계산기 — 벡터 파서 · Base Score')
 
+    # ---- radar (/radar/ live kimp + funding radar, 100% client-side)
+    radar_desc = ('업비트 KRW 마켓과 바이낸스 USDT 페어를 15초마다 비교해 김치 프리미엄(김프)과 무기한 선물 펀딩비를 한 표에 보여 줍니다. '
+                  '거래소 공개 API와 공개 환율 API를 브라우저가 직접 호출하며 값을 가공하는 서버가 없습니다. 정보 제공용이고 투자 조언이 아닙니다.')
+    radar_head = '\n'.join([
+        '<link rel="stylesheet" href="%s">' % av('/assets/css/radar.css'),
+        '<script src="%s" defer></script>' % av('/assets/js/radar.js'),
+        ld(webapp('김프·펀딩비 코인 레이더', radar_desc, '/radar/',
+                  ['업비트·바이낸스 가격 비교', '김치 프리미엄 계산', '선물 펀딩비·연환산', '심볼 검색·정렬'],
+                  category='FinanceApplication')),
+        ld(breadcrumbs([('홈', '/'), ('레이더', '/radar/')])),
+    ])
+    page('radar/index.html', '김프 레이더', radar_desc,
+         fill(tpl('radar.html'), {'tip': tip_block()}), 'radar', extra_head=radar_head,
+         title_raw='김프·펀딩비 레이더 — 업비트 vs 바이낸스 실시간')
+
     # ---- 404
     write('404.html', fill(base, {
         'site_title': SITE['title'], 'site_name': SITE['name'], 'tagline': SITE['tagline'],
         'page_title': '404', 'description': '페이지를 찾을 수 없습니다.',
-        'content': tpl('404.html'), 'nav_home': '', 'nav_archive': '', 'nav_tools': '',
+        'content': tpl('404.html'), 'nav_home': '', 'nav_archive': '', 'nav_tools': '', 'nav_radar': '',
         'year': datetime.date.today().year, 'author': SITE['author'], 'email': SITE['email'],
         'canonical': SITE['url'] + '/', 'og_image': SITE['url'] + '/assets/images/og-default.png',
         'extra_head': '', 'full_title': '페이지를 찾을 수 없습니다 — ' + SITE['name'],
@@ -676,6 +692,7 @@ def main():
     tool_date = datetime.date.today().isoformat()
     for tool_path in ('/tools/', '/tools/ioc-defanger/', '/tools/jwt-inspector/', '/tools/cvss-calculator/'):
         urls.append(('%s%s' % (SITE['url'], tool_path), tool_date, '0.8', 'monthly'))
+    urls.append(('%s/radar/' % SITE['url'], tool_date, '0.9', 'hourly'))
     for p in posts:
         urls.append(('%s/posts/%s/' % (SITE['url'], p['slug']), p['date'], '0.9', 'monthly'))
     sm = ['<?xml version="1.0" encoding="UTF-8"?>',

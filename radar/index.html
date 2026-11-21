@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>김프·펀딩비 레이더 — 업비트 vs 바이낸스 실시간</title>
+<meta name="description" content="업비트 KRW 마켓과 바이낸스 USDT 페어를 15초마다 비교해 김치 프리미엄(김프)과 무기한 선물 펀딩비를 한 표에 보여 줍니다. 거래소 공개 API와 공개 환율 API를 브라우저가 직접 호출하며 값을 가공하는 서버가 없습니다. 정보 제공용이고 투자 조언이 아닙니다.">
+<link rel="canonical" href="https://dohyeontech.github.io/radar/">
+<meta name="author" content="김도현">
+<meta name="msvalidate.01" content="7F649621B27074264CFFB0DCE372E1A9">
+<meta name="follow.it-verification-code" content="HkWaSeha15KxTX63qKkR">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="도현의 테크브리프">
+<meta property="og:title" content="김프·펀딩비 레이더 — 업비트 vs 바이낸스 실시간">
+<meta property="og:description" content="업비트 KRW 마켓과 바이낸스 USDT 페어를 15초마다 비교해 김치 프리미엄(김프)과 무기한 선물 펀딩비를 한 표에 보여 줍니다. 거래소 공개 API와 공개 환율 API를 브라우저가 직접 호출하며 값을 가공하는 서버가 없습니다. 정보 제공용이고 투자 조언이 아닙니다.">
+<meta property="og:url" content="https://dohyeontech.github.io/radar/">
+<meta property="og:image" content="https://dohyeontech.github.io/assets/images/og-default.png">
+<meta property="og:locale" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="김프·펀딩비 레이더 — 업비트 vs 바이낸스 실시간">
+<meta name="twitter:description" content="업비트 KRW 마켓과 바이낸스 USDT 페어를 15초마다 비교해 김치 프리미엄(김프)과 무기한 선물 펀딩비를 한 표에 보여 줍니다. 거래소 공개 API와 공개 환율 API를 브라우저가 직접 호출하며 값을 가공하는 서버가 없습니다. 정보 제공용이고 투자 조언이 아닙니다.">
+<meta name="twitter:image" content="https://dohyeontech.github.io/assets/images/og-default.png">
+<link rel="icon" href="/assets/images/favicon.png" type="image/png">
+<link rel="apple-touch-icon" href="/assets/images/favicon.png">
+<link rel="alternate" type="application/rss+xml" title="도현의 테크브리프 RSS" href="/feed.xml">
+<link rel="alternate" type="application/feed+json" title="도현의 테크브리프 JSON Feed" href="/feed.json">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="/assets/css/style.css?v=c3f780e1">
+<link rel="stylesheet" href="/assets/css/radar.css?v=5e19e16e">
+<script src="/assets/js/radar.js?v=7138ab58" defer></script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "WebApplication", "name": "김프·펀딩비 코인 레이더", "url": "https://dohyeontech.github.io/radar/", "description": "업비트 KRW 마켓과 바이낸스 USDT 페어를 15초마다 비교해 김치 프리미엄(김프)과 무기한 선물 펀딩비를 한 표에 보여 줍니다. 거래소 공개 API와 공개 환율 API를 브라우저가 직접 호출하며 값을 가공하는 서버가 없습니다. 정보 제공용이고 투자 조언이 아닙니다.", "applicationCategory": "FinanceApplication", "operatingSystem": "Any (web browser)", "browserRequirements": "JavaScript; runs entirely in the browser, no upload", "isAccessibleForFree": true, "inLanguage": ["ko", "en"], "featureList": ["업비트·바이낸스 가격 비교", "김치 프리미엄 계산", "선물 펀딩비·연환산", "심볼 검색·정렬"], "offers": {"@type": "Offer", "price": "0", "priceCurrency": "KRW"}, "publisher": {"@type": "Organization", "name": "도현의 테크브리프", "url": "https://dohyeontech.github.io/"}}</script>
+<script type="application/ld+json">{"@context": "https://schema.org", "@type": "BreadcrumbList", "itemListElement": [{"@type": "ListItem", "position": 1, "name": "홈", "item": "https://dohyeontech.github.io/"}, {"@type": "ListItem", "position": 2, "name": "레이더", "item": "https://dohyeontech.github.io/radar/"}]}</script>
+</head>
+<body>
+<a class="skip" href="#main">본문으로 건너뛰기</a>
+<header class="site-header">
+  <div class="wrap header__inner">
+    <a class="brand" href="/">
+      <span class="brand__mark" aria-hidden="true"></span>
+      <span class="brand__text">DOHYEON TECH BRIEF<span class="brand__suffix"> // CYBERSECURITY &amp; AI JOURNAL</span></span>
+    </a>
+    <nav class="nav" aria-label="주요 메뉴">
+      <a class="" href="/">홈</a>
+      <a class="" href="/archive/">아카이브</a>
+      <a class="" href="/tools/">도구</a>
+      <a class="is-active" href="/radar/">레이더</a>
+      <a href="https://dohyeon-sniper-bot.onrender.com/dashboard" target="_blank" rel="noopener">대시보드</a>
+    </nav>
+  </div>
+</header>
+<main id="main">
+<section class="wrap radar-page">
+  <nav class="crumbs" aria-label="위치"><a href="/">홈</a><span>/</span><span class="crumbs__here">레이더</span></nav>
+
+  <header class="radar-head">
+    <div class="eyebrow">LIVE · UPBIT KRW vs BINANCE USDT · 15s</div>
+    <h1 class="radar-h1">김프·펀딩비 레이더 — 업비트 원화가와 바이낸스 USDT가를 15초마다 맞춰 보는 화면</h1>
+    <p class="radar-lede">
+      업비트 KRW 마켓과 바이낸스 USDT 페어를 같은 시각에 받아 <strong>김치 프리미엄(김프)</strong>과
+      <strong>무기한 선물 펀딩비</strong>를 한 표에 놓았습니다. 원화 환산에는 공개 환율 API의 USD/KRW를 쓰고,
+      국내 실시간 체감 환율은 업비트 USDT 시세로 따로 보여 줍니다. 서버 없이 이 브라우저가 거래소 공개 API를 직접 호출하므로
+      중간에 값을 가공하는 곳이 없습니다.
+    </p>
+    <div class="trust">
+      <span class="trust__item">15s AUTO REFRESH</span>
+      <span class="trust__item">NO SERVER · DIRECT API</span>
+      <span class="trust__item">PUBLIC DATA ONLY</span>
+      <span class="trust__item">NOT INVESTMENT ADVICE</span>
+    </div>
+  </header>
+
+  <section class="kpis" aria-label="시장 요약">
+    <article class="kpi">
+      <div class="kpi__k">USD/KRW 기준 환율</div>
+      <div class="kpi__v" id="fx-rate">--</div>
+      <div class="kpi__sub" id="fx-meta">환율 API 연결 중…</div>
+      <div class="kpi__foot" id="fx-tether">테더 환산 환율 --</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi__k">업비트 테더 (USDT/KRW)</div>
+      <div class="kpi__v" id="usdt-price">--</div>
+      <div class="kpi__sub" id="usdt-prem">테더 김프 --</div>
+      <div class="kpi__foot">KRW-USDT · 실시간 체감 환율</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi__k">BTC 김프</div>
+      <div class="kpi__v" id="btc-prem">--</div>
+      <div class="kpi__sub" id="btc-meta">업비트 -- / 바이낸스 --</div>
+      <div class="kpi__foot">KRW-BTC vs BTCUSDT</div>
+    </article>
+    <article class="kpi">
+      <div class="kpi__k">BTC 펀딩비 (8h)</div>
+      <div class="kpi__v" id="btc-funding">--</div>
+      <div class="kpi__sub" id="btc-funding-ann">연환산 --</div>
+      <div class="kpi__foot" id="btc-next">다음 펀딩 --</div>
+    </article>
+    <article class="kpi kpi--rank">
+      <div class="kpi__k">최고 김프 / 최저 김프</div>
+      <div class="rank"><span class="rank__tag">HIGH</span><span class="rank__sym" id="top-sym">--</span><span class="rank__val" id="top-val">--</span></div>
+      <div class="rank"><span class="rank__tag rank__tag--low">LOW</span><span class="rank__sym" id="low-sym">--</span><span class="rank__val" id="low-val">--</span></div>
+      <div class="kpi__foot">24h 거래대금 1억 원 이상 종목</div>
+    </article>
+  </section>
+
+  <section class="rc" aria-label="레이더 조작">
+    <div class="rc__row">
+      <div class="rc__status">
+        <span class="dot" id="live-dot" aria-hidden="true"></span>
+        <span id="status-text">거래소 API 연결 중…</span>
+        <span class="rc__count" id="row-count">—</span>
+      </div>
+      <div class="rc__actions">
+        <span class="rc__timer" id="refresh-timer">다음 갱신 --</span>
+        <button class="rc__btn" id="btn-refresh" type="button">새로고침</button>
+        <button class="rc__btn rc__btn--toggle" id="btn-pause" type="button" aria-pressed="false">일시정지</button>
+      </div>
+    </div>
+    <div class="rc__row rc__row--filters">
+      <label class="rc__search">
+        <span class="sr-only">심볼 검색</span>
+        <input id="filter-input" type="search" inputmode="search" autocomplete="off" spellcheck="false" placeholder="심볼 검색 — BTC, 이더, XRP …">
+      </label>
+      <div class="rc__sorts" role="group" aria-label="정렬 기준">
+        <button class="rc__sort is-on" type="button" data-sort="premium-desc">김프 높은순</button>
+        <button class="rc__sort" type="button" data-sort="premium-asc">김프 낮은순</button>
+        <button class="rc__sort" type="button" data-sort="funding-abs">펀딩비 절대값</button>
+        <button class="rc__sort" type="button" data-sort="volume-desc">거래대금순</button>
+      </div>
+    </div>
+    <div class="rc__sources" id="source-chips" aria-live="polite"></div>
+  </section>
+
+  <div class="rt" id="table-wrap">
+    <table class="rt__table" id="radar-table">
+      <caption class="sr-only">업비트 KRW 마켓과 바이낸스 USDT 페어의 가격, 김치 프리미엄, 펀딩비, 24시간 거래대금 비교</caption>
+      <thead>
+        <tr>
+          <th scope="col" class="rt__sym">심볼</th>
+          <th scope="col" class="rt__num">업비트 (KRW)</th>
+          <th scope="col" class="rt__num">바이낸스 (USDT)</th>
+          <th scope="col" class="rt__num rt__col--prem">김프</th>
+          <th scope="col" class="rt__num rt__col--fund">펀딩비 <span class="rt__hint">8h / 연환산</span></th>
+          <th scope="col" class="rt__num">24h 거래대금 (억)</th>
+          <th scope="col" class="rt__num">24h 등락</th>
+        </tr>
+      </thead>
+      <tbody id="radar-body">
+        <tr class="rt__placeholder"><td colspan="7">거래소 공개 API에서 시세를 받아오는 중입니다…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <p class="rt__foot" id="table-foot">표시할 종목을 계산하는 중…</p>
+
+  <section class="rsec">
+    <div class="rsec__head">HOW IT READS</div>
+    <h2 class="rsec__title">숫자를 읽는 방법</h2>
+    <div class="rsec__grid">
+      <div class="rnote">
+        <div class="rnote__k">김프 = 업비트 원화가 ÷ (바이낸스 USDT가 × USD/KRW) − 1</div>
+        <p>같은 코인이 국내에서 얼마나 더 비싸게 거래되는지를 봅니다. 값이 +면 국내가 비싼 상태, −면 국내가 싼 상태(역프리미엄)입니다. 바이낸스는 현물 <code>ticker/price</code>, 업비트는 <code>ticker</code>의 마지막 체결가를 씁니다.</p>
+      </div>
+      <div class="rnote">
+        <div class="rnote__k">테더 김프는 환율 오차를 알려 줍니다</div>
+        <p>기준 환율은 하루 한 번 고시되는 공개 환율이라 은행 실시간 고시와 차이가 납니다. 업비트의 USDT 시세는 국내 참가자가 실제로 원화를 바꾸는 값이므로, 두 값의 차이를 테더 김프로 함께 보여 줍니다. 김프를 읽을 때 이만큼은 환율 기준 차이일 수 있다는 뜻입니다.</p>
+      </div>
+      <div class="rnote">
+        <div class="rnote__k">펀딩비는 8시간마다 교환되는 비용</div>
+        <p>무기한 선물에서 롱·숏이 서로 주고받는 비율입니다. +면 롱이 숏에게 지불(롱 과열), −면 반대입니다. 표의 연환산은 8시간 값을 하루 3회, 365일로 늘린 단순 환산이며 실제 정산 주기가 4시간인 종목은 값이 달라집니다. 펀딩 주기는 <code>premiumIndex</code>의 다음 정산 시각으로 확인합니다.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="rsec">
+    <div class="rsec__head">SOURCES &amp; LIMITS</div>
+    <h2 class="rsec__title">데이터 출처와 한계</h2>
+    <div class="rsec__body">
+      <ul>
+        <li><strong>업비트</strong> <code>api.upbit.com/v1/market/all</code>, <code>/v1/ticker</code> — KRW 마켓 현재가, 24시간 거래대금(원), 24시간 등락률.</li>
+        <li><strong>바이낸스</strong> <code>api.binance.com/api/v3/ticker/price</code> — 현물 USDT 가격. <code>fapi.binance.com/fapi/v1/premiumIndex</code> — 선물 마크가격, 현재 펀딩비, 다음 정산 시각. (앞 주소가 지역 제한으로 막히면 <code>data-api.binance.vision</code> 미러, 펀딩은 Gate.io 공개 API로 대체하며 화면 배지에 출처를 표시합니다.)</li>
+        <li><strong>환율</strong> 공개 환율 API 3곳을 순서대로 시도합니다(open.er-api.com → fawazahmed0 currency-api → frankfurter). 고시 시각을 카드에 함께 적습니다.</li>
+        <li><strong>비교 대상</strong>은 업비트 KRW 마켓 중 바이낸스에 같은 티커의 USDT 현물 페어가 있는 종목입니다. 업비트에만 상장된 코인은 김프를 계산할 수 없어 표에서 빠지고, 상단에 비교 가능 종목 수를 적습니다.</li>
+        <li><strong>호가 차이</strong> 업비트와 바이낸스의 마지막 체결 시각은 몇 초 어긋날 수 있고, 저유동성 종목은 호가 한 단위가 김프를 몇 % 움직입니다.</li>
+      </ul>
+    </div>
+  </section>
+
+  <aside class="rdisclaimer" role="note">
+    <strong>공개 API 시세 기준 정보 제공용이며 투자 조언이 아닙니다.</strong>
+    이 화면은 매수·매도 신호를 제공하지 않습니다. 김프와 펀딩비는 차익거래 기회로 보이더라도 전송 지연·입출금 정지·수수료·세금·환전 비용으로 손실이 날 수 있습니다. 표시 값은 거래소와 환율 API의 응답을 그대로 계산한 것으로, 표시 오류나 지연이 있을 수 있습니다.
+  </aside>
+
+  <aside class="tip"><div class="subscribe__label">SUPPORT</div><h2 class="tip__title">리포트가 도움이 됐다면</h2><p class="tip__desc">광고 없이 운영합니다. 후원은 아래 지갑 주소로만 받고, 받은 내역을 조건으로 한 대가성 홍보는 넣지 않습니다.</p><div class="tip__row"><span class="tip__k">BTC (Bitcoin · Native SegWit)</span><code class="tip__addr" data-addr="bc1qlug0gunjlm84suekyz5wu6c8uu4zml0zvyjmnv">bc1qlug0gunjlm84suekyz5wu6c8uu4zml0zvyjmnv</code><button class="tip__copy" type="button" data-copy="bc1qlug0gunjlm84suekyz5wu6c8uu4zml0zvyjmnv">COPY</button></div><div class="tip__row"><span class="tip__k">ETH / USDT / USDC (ERC-20 · Base · Arbitrum)</span><code class="tip__addr" data-addr="0x1f84BB57A4aFdD3FD92362516C3c9E6626968E0F">0x1f84BB57A4aFdD3FD92362516C3c9E6626968E0F</code><button class="tip__copy" type="button" data-copy="0x1f84BB57A4aFdD3FD92362516C3c9E6626968E0F">COPY</button></div><p class="tip__note">ETH · USDT · USDC는 ERC-20 계열 네트워크(Ethereum · Base · Arbitrum 등)에서만 보내 주세요. 다른 네트워크로 보낸 자산은 복구되지 않습니다.</p></aside>
+</section>
+
+</main>
+<footer class="site-footer">
+  <!-- 광고·제휴·후원 슬롯: 필요할 때 이 자리에 스크립트나 링크 블록을 넣는다. (기본은 비움) -->
+  <div class="wrap footer__inner">
+    <div class="footer__col footer__col--brand">
+      <div class="footer__brand">DOHYEON TECH BRIEF</div>
+      <p class="footer__desc">제로데이·공급망 공격·AI 보안을 소스 레벨에서 분석하는 엔지니어링 저널.</p>
+    </div>
+    <div class="footer__col">
+      <div class="footer__head">PAGES</div>
+      <a href="/">홈</a>
+      <a href="/archive/">아카이브</a>
+      <a href="/tools/">도구</a>
+      <a href="/radar/">레이더</a>
+      <a href="/about/">소개</a>
+      <a href="/feed.xml">RSS</a>
+      <a href="/feed.json">JSON 피드</a>
+    </div>
+    <div class="footer__col">
+      <div class="footer__head">CONTACT</div>
+      <a href="mailto:dohyeon.tech@proton.me">dohyeon.tech@proton.me</a>
+      <a href="https://dohyeon-sniper-bot.onrender.com/dashboard" target="_blank" rel="noopener">가상 트레이딩 대시보드</a>
+    </div>
+  </div>
+  <div class="wrap footer__bottom">
+    <span>© 2026 김도현. 분석 내용은 공개된 자료를 근거로 작성됩니다.</span>
+    <span class="footer__mono">BUILT STATIC · GITHUB PAGES</span>
+  </div>
+</footer>
+<script src="/assets/js/main.js?v=e09c6f7b" defer></script>
+</body>
+</html>
