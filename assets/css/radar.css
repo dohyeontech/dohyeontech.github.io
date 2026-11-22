@@ -353,6 +353,9 @@
   .rc__status { font-size: 11px; flex-wrap: wrap; row-gap: 2px; }
   .rc__actions { width: 100%; justify-content: space-between; }
   .rc__timer { margin-right: auto; }
+  .rc__tabs { flex-wrap: wrap; overflow: visible; padding-bottom: 0; row-gap: 5px; }
+  .rc__sorts { flex-wrap: wrap; overflow: visible; padding-bottom: 0; }
+  .rc__search { flex: 0 0 auto; width: 100%; min-width: 0; }
 
   .rt {
     border: 0; border-radius: 0; background: transparent;
