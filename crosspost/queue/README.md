@@ -1,26 +1,34 @@
-# Dev.to 백로그 큐 (2026-11-21 준비)
+# Dev.to 백로그 큐
 
-신규 Dev.to 계정(`dohyeontech`)에 하루에 여러 편을 올리면 스팸 필터에 걸린다. 그래서 vCenter 한 편만 2026-11-21에 라이브 발행했고, 나머지 두 편은 여기서 **하루 1편**씩 꺼내 쓴다.
+신규 Dev.to 계정(`dohyeontech`)에 하루에 여러 편을 올리면 스팸 필터에 걸린다. 그래서 발행은 **하루 1편 안팎**으로 끊어서 한다.
 
-| 순서 | 파일 | 원본(한국어) | 영문 커버 |
-|---|---|---|---|
-| 1 | `01-litellm-cve-2026-40217-en.md` | https://dohyeontech.github.io/posts/litellm-cve-2026-40217/ | `assets/images/thumb_litellm_cve_2026_40217_en.png` |
-| 2 | `02-puppet-enterprise-cve-2026-115731-en.md` | https://dohyeontech.github.io/posts/puppet-enterprise-cve-2026-115731/ | `assets/images/thumb_puppet_enterprise_cve_2026_115731_en.png` |
+## 발행 완료 (2026-11-23)
+
+| 파일 | Dev.to 글 | canonical 검증 |
+|---|---|---|
+| `archive/01-litellm-cve-2026-40217-en.md` | https://dev.to/dohyeontech/a-regex-was-guarding-a-compiler-inside-litellms-cve-2026-40217-sandbox-escape-68 (id 5094557) | HTTP 200 · `<link rel="canonical">` = 원본 일치 |
+| `archive/02-puppet-enterprise-cve-2026-115731-en.md` | https://dev.to/dohyeontech/a-type-name-in-a-report-body-puppet-enterprises-cve-2026-115731-deserialization-rce-265p (id 5094559) | HTTP 200 · `<link rel="canonical">` = 원본 일치 |
+
+두 편 모두 2026-11-23 00:30~00:31 KST에 66초 간격으로 발행했고, 스팸 차단·중복 게시는 없었다.
+
+## 대기 중인 원고
+
+없음. (Hashnode가 Pro 전용이라 웹 에디터 발행 대상. 남은 영문 원고는 `crosspost/` 루트의 `chrome-mirror-dimension-en.md`, `vcenter-…-en.md`, `monai-label-…-en.md`로 모두 발행됨.)
 
 ## 발행 방법 (편당 1회)
 
 ```bash
 cd /workspace/dohyeontech-blog
-python3 crosspost/crosspost.py devto crosspost/queue/01-litellm-cve-2026-40217-en.md
+python3 crosspost/crosspost.py devto crosspost/queue/<파일>.md
 ```
 
 - 프런트매터의 `canonical_url`은 원본 포스트로 고정돼 있다. 손대지 않는다.
-- 커버 이미지는 이미 GitHub Pages에 올라가 있다(커밋 `57797180`, HTTP 200 확인).
+- 커버 이미지는 GitHub Pages에 올라가 있어야 한다(발행 전에 `curl -o /dev/null -w '%{http_code}'`로 200 확인).
 - 발행 후 검증: 반환된 `url`에 `curl -o /dev/null -w '%{http_code}'`가 200, HTML에
   `<link rel="canonical" href="<원본 URL>" />`가 있는지 확인한다.
 - **실패해도 재시도하지 않는다.** API가 오류를 돌려줘도 실제로는 게시됐을 수 있으니,
   먼저 `GET /api/articles/me/all`로 확인한다(중복 게시 방지).
-- 발행한 파일은 `crosspost/queue/archive/`로 옮기고, 위 표에서 순서를 갱신한다.
+- 발행한 파일은 `crosspost/queue/archive/`로 옮기고, 위 표를 갱신한다.
 
 ## 태그
 

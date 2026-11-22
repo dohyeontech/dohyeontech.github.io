@@ -605,18 +605,20 @@ def main():
 
     # ---- radar (/radar/ live kimp + funding radar, 100% client-side)
     radar_desc = ('업비트 KRW 마켓과 바이낸스 USDT 페어를 15초마다 비교해 김치 프리미엄(김프)과 무기한 선물 펀딩비를 한 표에 보여 줍니다. '
-                  '거래소 공개 API와 공개 환율 API를 브라우저가 직접 호출하며 값을 가공하는 서버가 없습니다. 정보 제공용이고 투자 조언이 아닙니다.')
+                  '빗썸 원화가를 함께 받아 업-빗 괴리율과 실시간 급변 종목까지 표시하며, '
+                  '거래소 공개 API와 공개 환율 API를 브라우저가 직접 호출합니다(값을 가공하는 서버 없음). 정보 제공용이고 투자 조언이 아닙니다.')
     radar_head = '\n'.join([
         '<link rel="stylesheet" href="%s">' % av('/assets/css/radar.css'),
         '<script src="%s" defer></script>' % av('/assets/js/radar.js'),
         ld(webapp('김프·펀딩비 코인 레이더', radar_desc, '/radar/',
-                  ['업비트·바이낸스 가격 비교', '김치 프리미엄 계산', '선물 펀딩비·연환산', '심볼 검색·정렬'],
+                  ['업비트·빗썸·바이낸스 가격 비교', '김치 프리미엄 계산', '거래소 간 업-빗 괴리율',
+                   '선물 펀딩비·연환산', '24시간 급변 종목 포착', '심볼 검색·정렬·빠른 필터'],
                   category='FinanceApplication')),
         ld(breadcrumbs([('홈', '/'), ('레이더', '/radar/')])),
     ])
     page('radar/index.html', '김프 레이더', radar_desc,
          fill(tpl('radar.html'), {'tip': tip_block()}), 'radar', extra_head=radar_head,
-         title_raw='김프·펀딩비 레이더 — 업비트 vs 바이낸스 실시간')
+         title_raw='김프·펀딩비 레이더 — 업비트·빗썸 vs 바이낸스 실시간')
 
     # ---- 404
     write('404.html', fill(base, {

@@ -9,6 +9,8 @@
             그래서 300종을 3번에 나눠 15초마다 폴링하는 방식은 성립하지 않는다.
             REST 는 마켓 목록(/v1/market/all)만 쓰고, 실패 시에만 분당 3회
             간격으로 ticker 를 보조 수집한다.
+   Bithumb: public/ticker/ALL_KRW 한 번으로 KRW 마켓 전체 현재가·24h 거래대금·
+            등락률을 받아 업비트와 교차 확인한다(응답 헤더 Access-Control-Allow-Origin: *).
    Binance: 현물 ticker/price + 선물 premiumIndex 를 15초마다.
    FX     : 공개 환율 API 3곳을 순서대로.
    ============================================================ */
@@ -18,6 +20,8 @@
   var API = {
     upbitMarkets: 'https://api.upbit.com/v1/market/all',
     upbitTicker: 'https://api.upbit.com/v1/ticker?markets=',
+    bithumbAll: 'https://api.bithumb.com/public/ticker/ALL_KRW',
+    bithumbV1: 'https://api.bithumb.com/v1/ticker?markets=',
     binanceSpot: 'https://api.binance.com/api/v3/ticker/price',
     binanceSpotMirror: 'https://data-api.binance.vision/api/v3/ticker/price',
     binanceFutures: 'https://fapi.binance.com/fapi/v1/premiumIndex',
@@ -39,19 +43,31 @@
   var POLL_MS = 15000;        // 바이낸스 현물·선물·환율 갱신 주기
   var MARKETS_TTL = 600000;   // 업비트 마켓 목록 캐시 10분
   var FX_TTL = 300000;        // 환율 캐시 5분
+  var BITHUMB_TTL = 20000;    // 빗썸 전체 시세 캐시 20초
   var REST_SWEEP_MS = 60000;  // 스트림 실패 시 보조 수집 시작 간격 (3청크 = 분당 3회)
   var UPBIT_GAP = 10000;      // 업비트 교차 출처 REST는 분당 6회 수준이라 호출 사이를 10초 띄운다
   var VOL_FLOOR = 1e8;        // 최고/최저 김프 집계: 24h 거래대금 1억 원
   var COLLISION_PCT = 30;     // |김프| 30% 초과는 티커 충돌(다른 자산) 의심값으로 본다
+
+  // 급변 포착 기준
+  var SPIKE_CHG_24H = 5;      // 24시간 등락률 절대값 %
+  var SPIKE_FAST_PCT = 1.2;   // 체류 중 약 1분 가격 변동 %
+  var SPIKE_PREM_PP = 0.8;    // 체류 중 약 1분 김프 변동 %p
+  var FAST_MIN_AGE = 45000;   // 단기 변동을 재는 최소 경과 시간 (ms)
+
+  var VOL_TAB = 1e10;         // 거래대금 100억
+  var FUND_TAB = 0.01;        // 펀딩비 0.01%
 
   var S = {
     markets: null, marketsAt: 0,
     tickers: {},                    // base -> {trade_price, signed_change_rate, acc_trade_price_24h}
     spot: null, spotSource: '',
     fut: null, futSource: '',
+    bithumb: null, bithumbAt: 0, bithumbTrying: false, bithumbErr: '', bithumbSource: '',
     fx: null, fxAt: 0,
+    hist: {},                       // base -> { p: [[ts, price]], prem: [[ts, prem]] }
     rows: [], compared: 0, unmatched: 0,
-    sort: 'premium-desc', query: '', paused: false,
+    sort: 'premium-desc', query: '', tab: 'all', paused: false,
     polling: false, lastPollAt: 0, nextAt: 0,
     req: [], polls: 0, dirty: false,
     ws: null, wsState: 'idle', wsMsgs: 0, wsLastAt: 0, wsAttempts: 0, wsFallback: false, wsErr: '',
@@ -271,12 +287,14 @@
       var d;
       try { d = JSON.parse(text); } catch (e) { return; }
       if (!d || d.type !== 'ticker' || typeof d.code !== 'string') return;
-      S.tickers[d.code.slice(4)] = {
+      var base = d.code.slice(4);
+      S.tickers[base] = {
         market: d.code,
         trade_price: d.trade_price,
         signed_change_rate: d.signed_change_rate,
         acc_trade_price_24h: d.acc_trade_price_24h
       };
+      recordTick(base, parseFloat(d.trade_price));
       S.wsMsgs++;
       S.wsLastAt = Date.now();
       S.dirty = true;
@@ -345,6 +363,7 @@
               signed_change_rate: t.signed_change_rate,
               acc_trade_price_24h: t.acc_trade_price_24h
             };
+            recordTick(t.market.slice(4), parseFloat(t.trade_price));
           });
           S.dirty = true;
         }).catch(function () { return null; });
@@ -353,6 +372,77 @@
     chain.then(function () {
       S.sweeping = false;
       computeRows(); renderKpis(); renderTable(); updateStatus(); publishDiag();
+    });
+  }
+
+  /* ---------------------------------------------------------- bithumb */
+  /* 빗썸은 KRW 마켓 전체를 한 번에 주는 public/ticker/ALL_KRW 가 가볍고 빠르다.
+     실패하면 v1/ticker 로 주요 종목만이라도 받아 교차 확인을 이어 간다. */
+  function toBithumbMap(payload) {
+    var out = {};
+    var data = payload && payload.data;
+    if (!data) return out;
+    Object.keys(data).forEach(function (k) {
+      if (k === 'date') return;
+      var r = data[k];
+      if (!r) return;
+      var p = parseFloat(r.closing_price);
+      if (!(p > 0)) return;
+      out[k] = {
+        price: p,
+        chg: isFinite(parseFloat(r.fluctate_rate_24H)) ? parseFloat(r.fluctate_rate_24H) : null,
+        vol: parseFloat(r.acc_trade_value_24H) || 0
+      };
+    });
+    return out;
+  }
+
+  function loadBithumb() {
+    return track('bithumb-all', API.bithumbAll, request(API.bithumbAll, 12000)).then(function (payload) {
+      if (!payload || payload.status !== '0000') throw new Error('status ' + (payload && payload.status));
+      var map = toBithumbMap(payload);
+      if (!Object.keys(map).length) throw new Error('empty');
+      S.bithumbSource = 'BITHUMB ALL_KRW';
+      return map;
+    }).catch(function () {
+      var codes = PRIORITY.map(function (b) { return 'KRW-' + b; }).join(',');
+      return track('bithumb-v1', API.bithumbV1 + codes, request(API.bithumbV1 + codes, 12000)).then(function (list) {
+        var map = {};
+        (list || []).forEach(function (t) {
+          if (!t || typeof t.market !== 'string') return;
+          var p = parseFloat(t.trade_price);
+          if (!(p > 0)) return;
+          map[t.market.slice(4)] = {
+            price: p,
+            chg: parseFloat(t.signed_change_rate) * 100,
+            vol: parseFloat(t.acc_trade_price_24h) || 0
+          };
+        });
+        if (!Object.keys(map).length) throw new Error('empty');
+        S.bithumbSource = 'BITHUMB v1 (주요 종목)';
+        return map;
+      }).catch(function () { return null; });
+    });
+  }
+
+  function ensureBithumb() {
+    if (S.bithumbTrying) return Promise.resolve(S.bithumb);
+    if (S.bithumb && (Date.now() - S.bithumbAt) < BITHUMB_TTL) return Promise.resolve(S.bithumb);
+    S.bithumbTrying = true;
+    return loadBithumb().then(function (map) {
+      S.bithumbTrying = false;
+      if (map) {
+        S.bithumb = map;
+        S.bithumbAt = Date.now();
+        S.bithumbErr = '';
+        return S.bithumb;
+      }
+      S.bithumbErr = 'fetch failed';
+      return S.bithumb;
+    }, function (err) {
+      S.bithumbTrying = false;
+      S.bithumbErr = String((err && err.message) || err);
+      return S.bithumb;
     });
   }
 
@@ -417,7 +507,7 @@
   }
 
   function loadFx() {
-    // 세 곳을 동시에 불러 가장 최근 고시 날짜의 값을 쓴다 — 하루 늦은 고시값이 김프를 통째로 밀어 버리기 때문.
+    // 네 곳을 동시에 불러 가장 최근 고시 날짜의 값을 쓴다 — 하루 늦은 고시값이 김프를 통째로 밀어 버리기 때문.
     var picks = FX_SOURCES.map(function (src, order) {
       return track('fx:' + src.id, src.url, request(src.url, 10000)).then(function (data) {
         var out = src.parse(data);
@@ -434,11 +524,87 @@
     });
   }
 
+  /* ---------------------------------------------------------- short-term history */
+  function histOf(base) {
+    var h = S.hist[base];
+    if (!h) h = S.hist[base] = { p: [], prem: [] };
+    return h;
+  }
+
+  function recordTick(base, price) {
+    if (!(price > 0)) return;
+    var now = Date.now();
+    var h = histOf(base);
+    var last = h.p[h.p.length - 1];
+    if (!last || now - last[0] >= 3000) h.p.push([now, price]);
+    while (h.p.length > 2 && now - h.p[0][0] > 150000) h.p.shift();
+    if (h.p.length > 60) h.p.shift();
+  }
+
+  function recordPrem(base, prem) {
+    if (prem == null || !isFinite(prem)) return;
+    var now = Date.now();
+    var h = histOf(base);
+    var last = h.prem[h.prem.length - 1];
+    if (last && now - last[0] < 10000) return;
+    h.prem.push([now, prem]);
+    while (h.prem.length > 2 && now - h.prem[0][0] > 300000) h.prem.shift();
+    if (h.prem.length > 40) h.prem.shift();
+  }
+
+  /* minAge 이전의 표본과 지금 값을 비교한다 — 체류 중 단기 변동 판정용. */
+  function deltaSince(items, minAge) {
+    if (!items || items.length < 2) return null;
+    var now = Date.now();
+    var cur = items[items.length - 1];
+    var old = null;
+    for (var i = items.length - 1; i >= 0; i--) {
+      if (now - items[i][0] >= minAge) { old = items[i]; break; }
+    }
+    if (!old) return null;
+    return { d: cur[1] - old[1], from: old[1], to: cur[1], dt: Math.round((cur[0] - old[0]) / 1000) };
+  }
+
+  function spikeTags(row) {
+    var tags = [];
+    if (row.chg != null && Math.abs(row.chg) >= SPIKE_CHG_24H) {
+      tags.push(row.chg > 0
+        ? { k: 'hot', label: '🔥 급등', title: '24시간 등락 ' + pct(row.chg, 2) }
+        : { k: 'cold', label: '❄️ 급락', title: '24시간 등락 ' + pct(row.chg, 2) });
+    }
+    var h = S.hist[row.base];
+    if (h && h.p.length > 2) {
+      var mv = deltaSince(h.p, FAST_MIN_AGE);
+      if (mv && mv.from > 0) {
+        var rel = (mv.to / mv.from - 1) * 100;
+        if (Math.abs(rel) >= SPIKE_FAST_PCT) {
+          tags.push({
+            k: rel > 0 ? 'hot' : 'cold',
+            label: (rel > 0 ? '🔥' : '❄️') + ' ' + pct(rel, 1) + '/' + Math.max(1, Math.round(mv.dt / 60)) + '분',
+            title: '체류 중 단기 가격 변동 ' + pct(rel, 2) + ' · ' + mv.dt + '초'
+          });
+        }
+      }
+    }
+    if (h && h.prem.length > 2) {
+      var pm = deltaSince(h.prem, FAST_MIN_AGE);
+      if (pm && Math.abs(pm.d) >= SPIKE_PREM_PP) {
+        tags.push({
+          k: 'kimp',
+          label: '⚡ 김프급변',
+          title: '김프 ' + pct(pm.from, 2) + ' → ' + pct(pm.to, 2) + ' · ' + pm.dt + '초'
+        });
+      }
+    }
+    return tags;
+  }
+
   /* ---------------------------------------------------------- compute */
   function computeRows() {
     var fx = S.fx && S.fx.rate;
     var spot = S.spot || {};
     var fut = S.fut || { exact: {}, alias: {} };
+    var bith = S.bithumb || {};
     var rows = [];
     var unmatched = 0;
 
@@ -450,20 +616,42 @@
       var price = parseFloat(t.trade_price);
       if (!(price > 0)) { unmatched++; return; }
       var prem = (fx > 0) ? ((price / (binance * fx)) - 1) * 100 : null;
+      var b = bith[m.base];
+      var bPrice = (b && b.price > 0) ? b.price : null;
+      var gap = (bPrice && price > 0) ? ((price / bPrice) - 1) * 100 : null;
       var f = fut.exact[m.base] || fut.alias[m.base] || null;
-      rows.push({
+      var row = {
         base: m.base, korean: m.korean, english: m.english,
-        price: price, binance: binance, prem: prem,
+        price: price, binance: binance, bithumb: bPrice, gap: gap, prem: prem,
         funding: f && isFinite(f.rate) ? f.rate * 100 : null,
         ann: f && isFinite(f.rate) && f.intervalH ? (f.rate * 100) * (24 / f.intervalH) * 365 : null,
         next: f ? f.next : 0,
         vol: parseFloat(t.acc_trade_price_24h) || 0,
-        chg: isFinite(parseFloat(t.signed_change_rate)) ? parseFloat(t.signed_change_rate) * 100 : null
-      });
+        chg: isFinite(parseFloat(t.signed_change_rate)) ? parseFloat(t.signed_change_rate) * 100 : null,
+        tags: []
+      };
+      recordPrem(row.base, prem);
+      row.tags = spikeTags(row);
+      rows.push(row);
     });
 
     S.rows = rows;
     S.unmatched = unmatched;
+  }
+
+  /* ---------------------------------------------------------- filters */
+  var TABS = [
+    { id: 'all', label: '전체', test: function () { return true; } },
+    { id: 'kimp', label: '고김프 +2%↑', test: function (r) { return r.prem != null && r.prem >= 2; } },
+    { id: 'reverse', label: '역프 0%↓', test: function (r) { return r.prem != null && r.prem < 0; } },
+    { id: 'funding', label: '고펀딩비 ±0.01%↑', test: function (r) { return r.funding != null && Math.abs(r.funding) >= FUND_TAB; } },
+    { id: 'volume', label: '거래대금 100억↑', test: function (r) { return r.vol >= VOL_TAB; } },
+    { id: 'spike', label: '⚡ 급변 포착', test: function (r) { return r.tags && r.tags.length > 0; } }
+  ];
+
+  function tabOf(id) {
+    for (var i = 0; i < TABS.length; i++) if (TABS[i].id === id) return TABS[i];
+    return TABS[0];
   }
 
   /* ---------------------------------------------------------- KPI */
@@ -523,18 +711,24 @@
       el['btc-next'].textContent = '다음 펀딩 --';
     }
 
-    var top = null, low = null;
+    var top = null, low = null, bgap = null, bcount = 0;
     for (var j = 0; j < S.rows.length; j++) {
       var r = S.rows[j];
+      if (r.bithumb) bcount++;
       if (r.prem == null || r.vol < VOL_FLOOR) continue;
       if (Math.abs(r.prem) >= COLLISION_PCT) continue;   // 같은 티커의 다른 자산으로 보이는 값은 집계에서 뺀다
       if (!top || r.prem > top.prem) top = r;
       if (!low || r.prem < low.prem) low = r;
+      if (r.gap != null && Math.abs(r.gap) < COLLISION_PCT && (!bgap || Math.abs(r.gap) > Math.abs(bgap.gap))) bgap = r;
     }
     el['top-sym'].textContent = top ? top.korean + ' ' + top.base : '--';
     el['top-val'].innerHTML = top ? '<span class="' + signCls(top.prem) + '">' + pct(top.prem, 2) + '</span>' : '--';
     el['low-sym'].textContent = low ? low.korean + ' ' + low.base : '--';
     el['low-val'].innerHTML = low ? '<span class="' + signCls(low.prem) + '">' + pct(low.prem, 2) + '</span>' : '--';
+    el['gap-sym'].textContent = bgap ? bgap.korean + ' ' + bgap.base : '--';
+    el['gap-val'].innerHTML = bgap ? '<span class="' + signCls(bgap.gap) + '">' + pct(bgap.gap, 2) + '</span>' : '--';
+    el['rank-foot'].textContent = '빗썸 동시 상장 ' + bcount + '종 · 거래대금 1억↑ 기준'
+      + (bgap ? (bgap.gap > 0 ? ' · 업비트가 비쌈' : ' · 빗썸이 비쌈') : '');
   }
 
   /* ---------------------------------------------------------- table */
@@ -549,7 +743,11 @@
     'funding-abs': function (a, b) {
       return cmp(a.funding == null ? null : Math.abs(a.funding), b.funding == null ? null : Math.abs(b.funding), -1) || cmp(a.vol, b.vol, -1);
     },
-    'volume-desc': function (a, b) { return cmp(a.vol, b.vol, -1); }
+    'volume-desc': function (a, b) { return cmp(a.vol, b.vol, -1); },
+    'gap-abs': function (a, b) {
+      return (flagged(a) - flagged(b)) ||
+        cmp(a.gap == null ? null : Math.abs(a.gap), b.gap == null ? null : Math.abs(b.gap), -1) || cmp(a.vol, b.vol, -1);
+    }
   };
 
   function cmp(a, b, dir) {
@@ -561,26 +759,46 @@
     return dir * (a < b ? -1 : 1);
   }
 
+  function tagsHtml(r) {
+    if (!r.tags || !r.tags.length) return '';
+    var out = ['<span class="rowtags">'];
+    for (var i = 0; i < r.tags.length && i < 2; i++) {
+      var t = r.tags[i];
+      out.push('<span class="tag tag--' + t.k + '" title="' + esc(t.title) + '">' + esc(t.label) + '</span>');
+    }
+    out.push('</span>');
+    return out.join('');
+  }
+
   function rowHtml(r) {
     var chgCls = r.chg == null ? 'flat' : r.chg > 1e-6 ? 'up' : r.chg < -1e-6 ? 'down' : 'flat';
+    var gapFlag = (r.gap != null && Math.abs(r.gap) >= COLLISION_PCT);
     return '<tr>' +
-      '<th scope="row" class="rt__sym"><span class="sym-kr">' + esc(r.korean) + '</span><span class="sym-code">' + esc(r.base) + '</span></th>' +
-      '<td>' + fmtKrw(r.price) + '</td>' +
-      '<td>' + fmtUsd(r.binance) + '</td>' +
-      '<td class="' + signCls(r.prem) + '">' + pct(r.prem, 2) +
+      '<th scope="row" class="rt__sym c-sym">' +
+        '<span class="sym-kr">' + esc(r.korean) + '</span>' +
+        '<span class="sym-code">' + esc(r.base) + '</span>' +
+        tagsHtml(r) +
+      '</th>' +
+      '<td class="c-upbit" data-label="업비트">' + fmtKrw(r.price) + '</td>' +
+      '<td class="c-bin" data-label="바이낸스 USDT">' + fmtUsd(r.binance) + '</td>' +
+      '<td class="c-bith" data-label="빗썸">' + (r.bithumb ? fmtKrw(r.bithumb) : '<span class="dim">--</span>') + '</td>' +
+      '<td class="c-prem ' + signCls(r.prem) + '" data-label="김프">' + pct(r.prem, 2) +
         (r.prem != null && Math.abs(r.prem) >= COLLISION_PCT ? '<span class="rt__flag" title="같은 티커의 다른 자산일 수 있습니다">?</span>' : '') + '</td>' +
-      '<td>' + (r.funding == null
+      '<td class="c-gap ' + (gapFlag ? 'dim' : signCls(r.gap)) + '" data-label="업-빗 괴리">' + (r.gap == null ? '<span class="dim">--</span>' : pct(r.gap, 2)) +
+        (gapFlag ? '<span class="rt__flag" title="단위·자산이 다른 시세일 수 있습니다">?</span>' : '') + '</td>' +
+      '<td class="c-fund" data-label="펀딩비 8h">' + (r.funding == null
         ? '<span class="dim">--</span>'
         : '<span class="f-main ' + signCls(r.funding) + '">' + pct(r.funding, 4) + '</span>' +
           '<span class="f-ann ' + signCls(r.ann) + '">' + pct(r.ann, 1) + '/yr</span>') + '</td>' +
-      '<td>' + fmtVol(r.vol) + '</td>' +
-      '<td class="chg ' + chgCls + '">' + pct(r.chg, 2) + '</td>' +
+      '<td class="c-vol" data-label="24h 거래대금(억)">' + fmtVol(r.vol) + '</td>' +
+      '<td class="c-chg chg ' + chgCls + '" data-label="24h 등락">' + pct(r.chg, 2) + '</td>' +
       '</tr>';
   }
 
   function visibleRows() {
     var q = S.query.trim().toLowerCase();
-    var rows = S.rows;
+    var tab = tabOf(S.tab);
+    var rows = S.rows.filter(function (r) { return tab.test(r); });
     if (q) {
       rows = rows.filter(function (r) {
         return r.base.toLowerCase().indexOf(q) >= 0 ||
@@ -591,16 +809,67 @@
     return rows.slice().sort(SORTS[S.sort] || SORTS['premium-desc']);
   }
 
+  function renderTabs() {
+    var btns = el.tabs.querySelectorAll('.rtab');
+    for (var i = 0; i < btns.length; i++) {
+      var id = btns[i].getAttribute('data-tab');
+      var t = tabOf(id);
+      var n = 0;
+      for (var k = 0; k < S.rows.length; k++) if (t.test(S.rows[k])) n++;
+      var num = btns[i].querySelector('.rtab__n');
+      if (num) num.textContent = n;
+      var on = (id === S.tab);
+      btns[i].classList.toggle('is-on', on);
+      btns[i].setAttribute('aria-selected', on ? 'true' : 'false');
+    }
+    var spikeBtn = el.tabs.querySelector('[data-tab="spike"]');
+    if (spikeBtn) spikeBtn.classList.toggle('is-hot', true);
+  }
+
+  function renderSpikes() {
+    var list = [];
+    for (var i = 0; i < S.rows.length; i++) {
+      var r = S.rows[i];
+      if (!r.tags || !r.tags.length) continue;
+      var live = 0, lab = '';
+      for (var k = 0; k < r.tags.length; k++) {
+        if (r.tags[k].k === 'kimp' || r.tags[k].label.indexOf('/분') > 0) { live = 1; lab = r.tags[k].label; }
+      }
+      if (!lab) lab = r.tags[0].label;
+      list.push({ base: r.base, label: lab, live: live, chg: Math.abs(r.chg || 0) });
+    }
+    if (!list.length) {
+      el.spikes.hidden = true;
+      el.spikes.innerHTML = '';
+      return;
+    }
+    list.sort(function (a, b) { return (b.live - a.live) || (b.chg - a.chg); });
+    var head = '<span class="spike-lead">⚡ 급변 포착 <b>' + listAll().length + '종</b></span>';
+    var chips = list.slice(0, 5).map(function (x) {
+      return '<button type="button" class="spike' + (x.live ? ' is-live' : '') + '" data-base="' + esc(x.base) + '" title="이 종목만 보기">' +
+        esc(x.base) + ' <b>' + esc(x.label) + '</b></button>';
+    });
+    el.spikes.innerHTML = head + chips.join('');
+    el.spikes.hidden = false;
+  }
+
+  function listAll() {
+    return S.rows.filter(function (r) { return r.tags && r.tags.length; });
+  }
+
   function renderTable() {
     var rows = visibleRows();
     var body = el.body;
 
+    renderTabs();
+    renderSpikes();
+
     if (!S.rows.length) {
       if (S.polls > 0) {
-        body.innerHTML = '<tr class="rt__placeholder rt__placeholder--empty"><td colspan="7">시세를 받지 못했습니다. 잠시 후 <b>새로고침</b>을 눌러 주세요. (광고 차단 확장이나 네트워크가 거래소·환율 API를 막는 경우가 있습니다)</td></tr>';
+        body.innerHTML = '<tr class="rt__placeholder rt__placeholder--empty"><td colspan="9">시세를 받지 못했습니다. 잠시 후 <b>새로고침</b>을 눌러 주세요. (광고 차단 확장이나 네트워크가 거래소·환율 API를 막는 경우가 있습니다)</td></tr>';
         el['table-foot'].textContent = '요청 실패: ' + S.req.filter(function (r) { return !r.ok; }).map(function (r) { return r.name + '(' + (r.error || 'error') + ')'; }).join(', ');
       } else {
-        body.innerHTML = '<tr class="rt__placeholder"><td colspan="7">거래소 공개 API에서 시세를 받아오는 중입니다…</td></tr>';
+        body.innerHTML = '<tr class="rt__placeholder"><td colspan="9">거래소 공개 API에서 시세를 받아오는 중입니다…</td></tr>';
         el['table-foot'].textContent = '초기 로딩 중입니다.';
       }
       el['row-count'].textContent = '—';
@@ -608,17 +877,19 @@
     }
 
     if (!rows.length) {
-      body.innerHTML = '<tr class="rt__placeholder rt__placeholder--empty"><td colspan="7">검색어와 일치하는 심볼이 없습니다.</td></tr>';
+      body.innerHTML = '<tr class="rt__placeholder rt__placeholder--empty"><td colspan="9">' +
+        (S.query ? '검색어와 ' : '') + '조건에 맞는 종목이 없습니다. 다른 필터를 눌러 보세요.</td></tr>';
     } else {
       var html = [];
       for (var i = 0; i < rows.length; i++) html.push(rowHtml(rows[i]));
       body.innerHTML = html.join('');
     }
 
-    var futures = 0, volSum = 0, collisions = 0;
+    var futures = 0, volSum = 0, collisions = 0, withBith = 0;
     for (var k = 0; k < S.rows.length; k++) {
       if (S.rows[k].funding != null) futures++;
       if (S.rows[k].prem != null && Math.abs(S.rows[k].prem) >= COLLISION_PCT) collisions++;
+      if (S.rows[k].bithumb) withBith++;
       volSum += S.rows[k].vol;
     }
 
@@ -626,7 +897,7 @@
     el['table-foot'].textContent =
       '업비트 KRW ' + ((S.markets && S.markets.length) || 0) + '종 중 바이낸스 USDT 현물 페어가 있는 ' +
       S.rows.length + '종을 비교합니다(업비트 단독 상장 ' + S.unmatched + '종 제외). ' +
-      '이 중 펀딩비가 확인된 종목은 ' + futures + '종. ' +
+      '이 중 빗썸에서도 거래되는 ' + withBith + '종은 업-빗 괴리율을 함께 표시하고, 펀딩비가 확인된 종목은 ' + futures + '종. ' +
       '비교 종목의 업비트 24시간 거래대금 합계는 ' + nf(volSum / 1e8, 0) + '억 원.' +
       (collisions ? ' 김프가 ±' + COLLISION_PCT + '%를 넘는 ' + collisions + '종은 같은 티커의 다른 자산일 수 있어 ?로 표시하고 최고·최저 집계에서 뺐습니다.' : '') +
       (S.wsFallback ? ' · 업비트 스트림이 막혀 REST 보조 수집으로 표시 중입니다.' : '');
@@ -643,10 +914,12 @@
   function sourceChips() {
     var up = upbitChip();
     var spotLabel = S.spotSource === 'data-api.binance.vision' ? 'BINANCE SPOT (mirror)' : 'BINANCE SPOT';
+    var bithLabel = S.bithumb ? (S.bithumbSource || 'BITHUMB') : 'BITHUMB';
     var chips = [
       up,
       { label: spotLabel, state: S.spot ? 'ok' : 'fail' },
       { label: S.futSource || 'FUNDING', state: S.fut ? 'ok' : 'fail' },
+      { label: bithLabel, state: S.bithumb ? 'ok' : 'fail', note: S.bithumb ? Object.keys(S.bithumb).length + '종' : '' },
       { label: 'FX · ' + (S.fx ? S.fx.source : '없음'), state: S.fx ? 'ok' : 'fail' }
     ];
     el.chips.innerHTML = chips.map(function (c) {
@@ -693,11 +966,13 @@
     var fxP = (S.fx && (Date.now() - S.fxAt) < FX_TTL) ? Promise.resolve(S.fx) : loadFx().catch(function () { return S.fx; });
     var spotP = loadSpot();
     var futP = loadFutures();
+    var bithP = ensureBithumb();
 
-    Promise.all([fxP, spotP, futP]).then(function (res) {
+    Promise.all([fxP, spotP, futP, bithP]).then(function (res) {
       if (res[0]) { S.fx = res[0]; S.fxAt = Date.now(); }
       if (res[1]) S.spot = res[1];
       if (res[2]) S.fut = res[2];
+      if (res[3]) S.bithumb = res[3];
 
       computeRows();
       renderKpis();
@@ -721,7 +996,8 @@
     ['BTC', 'ETH', 'XRP'].forEach(function (b) {
       for (var i = 0; i < S.rows.length; i++) {
         if (S.rows[i].base === b) {
-          sample[b] = { upbit: S.rows[i].price, binance: S.rows[i].binance, prem: S.rows[i].prem, funding: S.rows[i].funding };
+          var r = S.rows[i];
+          sample[b] = { upbit: r.price, binance: r.binance, bithumb: r.bithumb, gap: r.gap, prem: r.prem, funding: r.funding, tags: r.tags.map(function (t) { return t.label; }) };
           break;
         }
       }
@@ -730,11 +1006,18 @@
       polls: S.polls,
       lastPollAt: S.lastPollAt || null,
       paused: S.paused,
+      tab: S.tab,
       requests: S.req.slice(),
       failures: S.req.filter(function (r) { return !r.ok; }),
       fx: S.fx,
       spotSource: S.spotSource,
       futuresSource: S.futSource,
+      bithumb: {
+        source: S.bithumbSource,
+        err: S.bithumbErr,
+        at: S.bithumbAt || null,
+        count: S.bithumb ? Object.keys(S.bithumb).length : 0
+      },
       upbit: { state: S.wsState, messages: S.wsMsgs, lastAt: S.wsLastAt, fallback: S.wsFallback, err: S.wsErr, tickers: Object.keys(S.tickers).length },
       markets: { tries: S.marketsTries, err: S.marketsErr, count: (S.markets && S.markets.length) || 0 },
       restSweepAt: S.restSweepAt || null,
@@ -743,7 +1026,10 @@
         compared: S.rows.length,
         unmatched: S.unmatched,
         withFunding: S.rows.filter(function (r) { return r.funding != null; }).length,
-        rendered: document.querySelectorAll('#radar-body tr').length
+        withBithumb: S.rows.filter(function (r) { return r.bithumb; }).length,
+        spikes: S.rows.filter(function (r) { return r.tags.length; }).length,
+        rendered: document.querySelectorAll('#radar-body tr').length,
+        tabs: (function () { var o = {}; TABS.forEach(function (t) { o[t.id] = S.rows.filter(t.test).length; }); return o; })()
       },
       sample: sample,
       windowErrors: S.windowErrors.slice()
@@ -787,6 +1073,11 @@
     tick();
   }
 
+  function setTab(id) {
+    S.tab = id;
+    renderTabs();
+    if (S.rows.length) renderTable();
+  }
 
   /* ---------------------------------------------------------- init */
   function init() {
@@ -795,11 +1086,14 @@
     el.timer = $('refresh-timer');
     el.chips = $('source-chips');
     el.body = $('radar-body');
+    el.tabs = $('radar-tabs');
+    el.spikes = $('spike-strip');
     el['table-foot'] = $('table-foot');
     el['row-count'] = $('row-count');
     el['status-text'] = $('status-text');
     ['fx-rate', 'fx-meta', 'fx-tether', 'usdt-price', 'usdt-prem', 'btc-prem', 'btc-meta',
-      'btc-funding', 'btc-funding-ann', 'btc-next', 'btc-tether', 'top-sym', 'top-val', 'low-sym', 'low-val'].forEach(function (id) {
+      'btc-funding', 'btc-funding-ann', 'btc-next', 'btc-tether', 'top-sym', 'top-val', 'low-sym', 'low-val',
+      'gap-sym', 'gap-val', 'rank-foot'].forEach(function (id) {
       el[id] = $(id);
     });
 
@@ -826,6 +1120,24 @@
       delay = setTimeout(function () { S.query = v; if (S.rows.length) renderTable(); }, 90);
     });
 
+    el.tabs.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.rtab') : null;
+      if (!btn) return;
+      setTab(btn.getAttribute('data-tab'));
+    });
+
+    el.spikes.addEventListener('click', function (e) {
+      var btn = e.target.closest ? e.target.closest('.spike') : null;
+      if (!btn) return;
+      var base = btn.getAttribute('data-base') || '';
+      input.value = base;
+      S.query = base;
+      setTab('all');
+      renderTable();
+      var wrap = $('table-wrap');
+      if (wrap && wrap.scrollIntoView) wrap.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+
     Array.prototype.forEach.call(document.querySelectorAll('.rc__sort'), function (btn) {
       btn.addEventListener('click', function () {
         S.sort = btn.getAttribute('data-sort');
@@ -847,7 +1159,7 @@
     setInterval(tick, 1000);
     publishDiag();
 
-    // 1) 마켓 목록 → 2) 업비트 스트림 연결 → 3) 바이낸스·환율 폴링
+    // 1) 마켓 목록 → 2) 업비트 스트림 연결 → 3) 바이낸스·빗썸·환율 폴링
     ensureMarkets(true).then(function () {
       loadCycle();
     });
