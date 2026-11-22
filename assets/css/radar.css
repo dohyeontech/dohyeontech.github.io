@@ -340,8 +340,9 @@
 /* ---------------------------------------------------------- tablet */
 @media (max-width: 900px) {
   .rc__row--filters { align-items: stretch; flex-direction: column; }
+  .rc__tabs { max-width: 100%; flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
+  .rc__search, .rc__sorts { min-width: 0; max-width: 100%; }
   .rc__sorts { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
-  .rc__tabs { flex-wrap: nowrap; overflow-x: auto; padding-bottom: 2px; -webkit-overflow-scrolling: touch; }
 }
 
 /* ---------------------------------------------------------- mobile (< 768px) : table rows become cards */
@@ -407,7 +408,10 @@
 
   .c-prem {
     grid-area: prem; text-align: right;
-    font-size: 17px; font-weight: 700; line-height: 1.1;
+    line-height: 1.1;
+  }
+  .rt__table tbody td.c-prem {
+    font-size: 17px; font-weight: 700;
     font-variant-numeric: tabular-nums;
   }
   .c-prem::before { text-align: right; }

@@ -5,7 +5,7 @@
 <link>https://dohyeontech.github.io/</link>
 <description>제로데이·공급망 공격·AI 보안을 소스 레벨에서 분석하는 엔지니어링 저널.</description>
 <language>ko</language>
-<lastBuildDate>Mon, 23 Nov 2026 00:31:45 +0900</lastBuildDate>
+<lastBuildDate>Mon, 23 Nov 2026 00:39:32 +0900</lastBuildDate>
 <atom:link href="https://dohyeontech.github.io/feed.xml" rel="self" type="application/rss+xml"/>
 <item><title>11분에 뚫린 의료영상 AI — Cairn 에이전트가 찾은 MONAI Label 제로데이</title><link>https://dohyeontech.github.io/posts/monai-label-cve-2026-133968-cairn-agent/</link><guid isPermaLink="true">https://dohyeontech.github.io/posts/monai-label-cve-2026-133968-cairn-agent/</guid><pubDate>Sun, 22 Nov 2026 09:00:00 +0900</pubDate><category>AI 보안</category><description>아마존 위협 인텔리가 11월 20일 공개한 사건에서, 자율 침투 프레임워크 Cairn의 에이전트들은 '셸을 얻어라'는 목표만 받고 돌다가 의료영상 AI 서버 MONAI Label의 업로드 파라미터에서 경로 탈출을 찾아냈다. API 매핑에서 임의 파일 쓰기까지 11분, 그리고 sitecustomize.py 한 파일로 root 역쉘까지. 수정 커밋은 10월에 머지됐지만 PyPI에는 아직 설치할 패치가 없다.</description></item>
 <item><title>실제 URL은 그대로, 웹은 가짜로 — Chrome 'Mirror Dimension'이 프롬프트 인젝션을 검증하는 방법</title><link>https://dohyeontech.github.io/posts/chrome-mirror-dimension-agent-security/</link><guid isPermaLink="true">https://dohyeontech.github.io/posts/chrome-mirror-dimension-agent-security/</guid><pubDate>Sat, 21 Nov 2026 09:00:00 +0900</pubDate><category>AI 보안</category><description>Chrome AI 보안팀이 11월 19일 공개한 'mirror dimension'은 실제 URL을 유지한 채 gVisor 샌드박스 안의 합성 웹으로 트래픽을 돌리는 평가 환경이다. eval awareness를 피해 URL 파라미터를 HTTP 헤더로 옮긴 이유, 사이트를 만드는 에이전트 팀, 그리고 엔지니어 1인당 하루 1,000건이라는 수치가 실제로 옮긴 병목을 1차 자료로 뜯는다.</description></item>

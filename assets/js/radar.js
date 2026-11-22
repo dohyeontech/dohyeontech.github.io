@@ -622,7 +622,7 @@
       var f = fut.exact[m.base] || fut.alias[m.base] || null;
       var row = {
         base: m.base, korean: m.korean, english: m.english,
-        price: price, binance: binance, bithumb: bPrice, gap: gap, prem: prem,
+        price: price, binance: binance, bithumb: bPrice, gap: gap, bvol: b ? b.vol || 0 : 0, prem: prem,
         funding: f && isFinite(f.rate) ? f.rate * 100 : null,
         ann: f && isFinite(f.rate) && f.intervalH ? (f.rate * 100) * (24 / f.intervalH) * 365 : null,
         next: f ? f.next : 0,
@@ -719,7 +719,8 @@
       if (Math.abs(r.prem) >= COLLISION_PCT) continue;   // 같은 티커의 다른 자산으로 보이는 값은 집계에서 뺀다
       if (!top || r.prem > top.prem) top = r;
       if (!low || r.prem < low.prem) low = r;
-      if (r.gap != null && Math.abs(r.gap) < COLLISION_PCT && (!bgap || Math.abs(r.gap) > Math.abs(bgap.gap))) bgap = r;
+      // 빗썸 쪽 거래가 거의 없는 종목은 마지막 체결가가 오래돼 괴리가 과장된다 — KPI는 양쪽 다 거래대금이 있는 종목만 본다.
+      if (r.gap != null && r.bvol >= VOL_FLOOR && Math.abs(r.gap) < COLLISION_PCT && (!bgap || Math.abs(r.gap) > Math.abs(bgap.gap))) bgap = r;
     }
     el['top-sym'].textContent = top ? top.korean + ' ' + top.base : '--';
     el['top-val'].innerHTML = top ? '<span class="' + signCls(top.prem) + '">' + pct(top.prem, 2) + '</span>' : '--';
@@ -822,8 +823,6 @@
       btns[i].classList.toggle('is-on', on);
       btns[i].setAttribute('aria-selected', on ? 'true' : 'false');
     }
-    var spikeBtn = el.tabs.querySelector('[data-tab="spike"]');
-    if (spikeBtn) spikeBtn.classList.toggle('is-hot', true);
   }
 
   function renderSpikes() {
