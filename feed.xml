@@ -5,7 +5,7 @@
 <link>https://dohyeontech.github.io/</link>
 <description>제로데이·공급망 공격·AI 보안을 소스 레벨에서 분석하는 엔지니어링 저널.</description>
 <language>ko</language>
-<lastBuildDate>Mon, 23 Nov 2026 09:07:45 +0900</lastBuildDate>
+<lastBuildDate>Mon, 23 Nov 2026 09:11:11 +0900</lastBuildDate>
 <atom:link href="https://dohyeontech.github.io/feed.xml" rel="self" type="application/rss+xml"/>
 <item><title>200만 카나리가 찾아낸 세 번의 침해 — ZDR은 왜 지켜지지 않았나</title><link>https://dohyeontech.github.io/posts/ai-inference-supply-chain-canary-tokens/</link><guid isPermaLink="true">https://dohyeontech.github.io/posts/ai-inference-supply-chain-canary-tokens/</guid><pubDate>Mon, 23 Nov 2026 09:00:00 +0900</pubDate><category>AI 보안</category><description>HD Moore가 이끄는 Dragos 팀이 7월부터 11월까지 약 200만 개 프롬프트에 요청마다 다른 AWS 키·비밀 URL·SSH 암호를 심어 추론 경로를 추적했다. 호스팅 제공사 세 곳이 실제로 뚫려 카나리 키가 공격에 쓰였고, 마켓플레이스 리셀러는 로깅만 켜서 고객 프롬프트를 모았으며, ZDR 표시를 단 요청은 저장되지 않기는커녕 24일 뒤 중국 사내 채팅에 링크가 올라왔다. Phala·Together·Novita·Atlas Cloud·OpenRouter의 1차 공지를 대조해 프롬프트가 어느 계층에서 새는지 뜯어본다.</description></item>
 <item><title>11분에 뚫린 의료영상 AI — Cairn 에이전트가 찾은 MONAI Label 제로데이</title><link>https://dohyeontech.github.io/posts/monai-label-cve-2026-133968-cairn-agent/</link><guid isPermaLink="true">https://dohyeontech.github.io/posts/monai-label-cve-2026-133968-cairn-agent/</guid><pubDate>Sun, 22 Nov 2026 09:00:00 +0900</pubDate><category>AI 보안</category><description>아마존 위협 인텔리가 11월 20일 공개한 사건에서, 자율 침투 프레임워크 Cairn의 에이전트들은 '셸을 얻어라'는 목표만 받고 돌다가 의료영상 AI 서버 MONAI Label의 업로드 파라미터에서 경로 탈출을 찾아냈다. API 매핑에서 임의 파일 쓰기까지 11분, 그리고 sitecustomize.py 한 파일로 root 역쉘까지. 수정 커밋은 10월에 머지됐지만 PyPI에는 아직 설치할 패치가 없다.</description></item>
