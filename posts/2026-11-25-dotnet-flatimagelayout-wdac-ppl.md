@@ -25,7 +25,6 @@ author: "김도현"
 | :--- | :--- | :--- |
 | 대상 | Windows 호스트의 VirtualBox 7.2.16 | .NET Framework 4 (Windows 전반) |
 | 점수 | **7.8** (Oracle, High) | **8.8** (Microsoft, Important, temporal 7.7) |
-| 등급 | High | Important |
 | 수정 | 2026-09-15 CPU, 빌드 **7.2.18** (현재 최신 7.2.22) | 2026-10-13 누적 업데이트, **OS별 KB** |
 | NVD | 2026-09-15 게시, `Analyzed`, CWE-269 | 2026-10-13 게시, `Awaiting Analysis`, CWE-426 |
 | 악용 | MSRC/Oracle 악용 정황 없음 | `exploited: No`, `publicly disclosed: Yes`, `Exploitation Less Likely` |
