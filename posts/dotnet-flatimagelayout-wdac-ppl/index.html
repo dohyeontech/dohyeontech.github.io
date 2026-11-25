@@ -138,7 +138,7 @@
   ) {
      ThrowWin32(ERROR_BAD_EXE_FORMAT);
   }</code></pre><button class="copy" type="button" aria-label="코드 복사">COPY</button></div>
-<p><code>WLDP_LOCKDOWN_IS_ENFORCE</code>는 UMCI 강제 여부를 직접 본다. 이 수정은 UMCI 경로를 닫지만, 보호 프로세스 경로는 건드리지 않는다. 2.4절에서 다시 나온다.</p>
+<p><code>WLDP_LOCKDOWN_IS_ENFORCE</code>는 UMCI 강제 여부를 직접 본다. 이 수정은 UMCI 경로를 닫지만, 보호 프로세스 경로는 건드리지 않는다. 4.3절에서 다시 나온다.</p>
 <h3>2.3 VirtualBox 훅이 폴백을 만들어 준 방식</h3>
 <p>VirtualBox는 Windows 호스트에서 VM 프로세스를 사용자로부터 보호하기 위해 DLL 로더에 훅을 건다. 그중 하나가 <code>NtCreateSection</code> 시스템 콜에 붙은 <code>supR3HardenedMonitor_NtCreateSection</code>이고, 원문이 인용한 시작부는 이렇다.</p>
 <div class="codeblock"><pre><code>NTSTATUS supR3HardenedMonitor_NtCreateSection(PHANDLE phSection,

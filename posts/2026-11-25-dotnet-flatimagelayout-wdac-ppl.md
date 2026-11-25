@@ -129,7 +129,7 @@ Microsoft의 수정은 그 질문을 바로잡는 한 줄이다.
   }
 ```
 
-`WLDP_LOCKDOWN_IS_ENFORCE`는 UMCI 강제 여부를 직접 본다. 이 수정은 UMCI 경로를 닫지만, 보호 프로세스 경로는 건드리지 않는다. 2.4절에서 다시 나온다.
+`WLDP_LOCKDOWN_IS_ENFORCE`는 UMCI 강제 여부를 직접 본다. 이 수정은 UMCI 경로를 닫지만, 보호 프로세스 경로는 건드리지 않는다. 4.3절에서 다시 나온다.
 
 ### 2.3 VirtualBox 훅이 폴백을 만들어 준 방식
 
