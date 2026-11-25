@@ -250,7 +250,7 @@ rule PE_Managed_No_EXECUTABLE_IMAGE_Triage
         uint16(0) == 0x5A4D and
         uint32(0x3C) < filesize - 0x100 and
         uint32(uint32(0x3C)) == 0x00004550 and
-        uint16(uint32(0x3C) + 22) & 0x0002 == 0 and
+        (uint16(uint32(0x3C) + 22) & 0x0002) == 0 and
         uint32(uint32(0x3C) + 4 + 16 + 208) != 0   // PE32 COM descriptor RVA
 }
 ```

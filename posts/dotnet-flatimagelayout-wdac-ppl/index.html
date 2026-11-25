@@ -220,7 +220,7 @@ OPTIONAL HEADER VALUES
         uint16(0) == 0x5A4D and
         uint32(0x3C) &lt; filesize - 0x100 and
         uint32(uint32(0x3C)) == 0x00004550 and
-        uint16(uint32(0x3C) + 22) &amp; 0x0002 == 0 and
+        (uint16(uint32(0x3C) + 22) &amp; 0x0002) == 0 and
         uint32(uint32(0x3C) + 4 + 16 + 208) != 0   // PE32 COM descriptor RVA
 }</code></pre><button class="copy" type="button" aria-label="코드 복사">COPY</button></div>
 <p>정상적인 .NET DLL은 <code>characteristics</code>가 <code>0x2022</code>다. 그 값에서 <code>0x0002</code>만 빠진 파일이 관리 메타데이터를 갖고 있다면, 누군가 로더 폴백을 노리고 한 비트를 지웠을 가능성을 먼저 의심할 수 있다. 다만 원문의 VirtualBox 경로는 <strong>파일을 전혀 수정하지 않는다</strong>. 이 규칙은 Windows 코드 무결성 경로만 잡는다는 점을 분명히 해 둔다.</p>
