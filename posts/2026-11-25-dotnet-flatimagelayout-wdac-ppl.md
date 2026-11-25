@@ -24,12 +24,14 @@ author: "김도현"
 | 구분 | CVE-2026-87268 (VirtualBox) | CVE-2026-108398 (.NET Framework) |
 | :--- | :--- | :--- |
 | 대상 | Windows 호스트의 VirtualBox 7.2.16 | .NET Framework 4 (Windows 전반) |
-| 점수 | **7.8** — `CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H` (Oracle) | **8.8** — `CVSS:3.1/AV:L/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H` (Microsoft, temporal 7.7) |
+| 점수 | **7.8** (Oracle, High) | **8.8** (Microsoft, Important, temporal 7.7) |
 | 등급 | High | Important |
 | 수정 | 2026-09-15 CPU, 빌드 **7.2.18** (현재 최신 7.2.22) | 2026-10-13 누적 업데이트, **OS별 KB** |
 | NVD | 2026-09-15 게시, `Analyzed`, CWE-269 | 2026-10-13 게시, `Awaiting Analysis`, CWE-426 |
 | 악용 | MSRC/Oracle 악용 정황 없음 | `exploited: No`, `publicly disclosed: Yes`, `Exploitation Less Likely` |
 | KEV | 미등재 (2026.11.24 기준 1,795건) | 미등재 |
+
+두 점수의 차이는 scope에 있다. VirtualBox는 `AV:L/AC:L/PR:L/UI:N/S:U/C:H/I:H/A:H`로 scope가 그대로고, .NET은 `AV:L/AC:L/PR:L/UI:N/S:C/C:H/I:H/A:H`로 scope change가 붙는다. 둘 다 로컬·저권한·사용자 상호작용 없음이라는 같은 전제 위에 있고, Microsoft 쪽이 "영향이 다른 보안 권한(보호 프로세스)까지 미친다"고 더 무겁게 본 결과다.
 
 세 번째 방어선은 CVE가 없다. **PPL(Protected Process Light)** 이다. Microsoft는 PPL 우회를 자사 보안 서비스 기준(MSRC Security Servicing Criteria)의 범위 밖으로 두고 있고, 10월 수정은 UMCI 정책 검사만 고쳤다. Forshaw는 "보호 프로세스에 대한 로딩 경로는 바뀌지 않았으므로 그 경로는 여전히 동작할 것"이라고 적었다. 지금 이 시점에 이 글에서 가장 실무적인 문장이 그것이다. 두 개의 CVE는 패치가 나왔고, 세 번째는 나오지 않았다.
 

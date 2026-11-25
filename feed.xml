@@ -5,7 +5,7 @@
 <link>https://dohyeontech.github.io/</link>
 <description>제로데이·공급망 공격·AI 보안을 소스 레벨에서 분석하는 엔지니어링 저널.</description>
 <language>ko</language>
-<lastBuildDate>Wed, 25 Nov 2026 13:18:37 +0900</lastBuildDate>
+<lastBuildDate>Wed, 25 Nov 2026 13:20:04 +0900</lastBuildDate>
 <atom:link href="https://dohyeontech.github.io/feed.xml" rel="self" type="application/rss+xml"/>
 <item><title>[분석] 한 비트면 충분했다 — .NET 로더가 WDAC·PPL·VirtualBox를 동시에 지나간 이유</title><link>https://dohyeontech.github.io/posts/dotnet-flatimagelayout-wdac-ppl/</link><guid isPermaLink="true">https://dohyeontech.github.io/posts/dotnet-flatimagelayout-wdac-ppl/</guid><pubDate>Wed, 25 Nov 2026 13:30:00 +0900</pubDate><category>보안 기능 우회</category><description>COFF 헤더의 IMAGE_FILE_EXECUTABLE_IMAGE 한 비트를 지우면 .NET Framework 4는 그 어셈블리를 이미지 섹션이 아니라 데이터 섹션으로 매핑한다. 그 경로에는 코드 무결성 훅이 걸리지 않는다. Project Zero의 James Forshaw는 이 동작 하나로 VirtualBox 프로세스 하드닝(CVE-2026-87268), Windows 11 S Mode의 UMCI(CVE-2026-108398), 그리고 CVE조차 없는 PPL 보호 프로세스를 차례로 통과했다. 두 벤더의 수정은 9월과 10월에 끝났지만, PPL 경로는 연구자 진술 기준으로 아직 열려 있다.</description></item>
 <item><title>[긴급 속보] Drupal Core 제로데이 취약점(CVE-2026-132165) KEV 등재… install.php 악용 즉시 패치 권고</title><link>https://dohyeontech.github.io/posts/drupal-core-cve-2026-132165/</link><guid isPermaLink="true">https://dohyeontech.github.io/posts/drupal-core-cve-2026-132165/</guid><pubDate>Wed, 25 Nov 2026 03:30:00 +0900</pubDate><category>원격 코드 실행</category><description>Drupal 코어가 모든 배포본에 넣어 두는 core/install.php가, 특정 조건에서 살아 있는 사이트를 '미설치'로 오판하고 재설치를 허용했다. DB 검증 실패를 삼키던 catch 두 개와 settings.php 권한을 스스로 풀던 auto_fix가 겹친 결과다. 11월 19일 실제 침해가 보고됐고 24일 CISA KEV에 올랐다. 조치 기한은 27일이다.</description></item>
