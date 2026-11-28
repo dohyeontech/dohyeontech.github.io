@@ -8,6 +8,7 @@
 <url><loc>https://dohyeontech.github.io/tools/jwt-inspector/</loc><lastmod>2026-11-28</lastmod><priority>0.8</priority><changefreq>monthly</changefreq></url>
 <url><loc>https://dohyeontech.github.io/tools/cvss-calculator/</loc><lastmod>2026-11-28</lastmod><priority>0.8</priority><changefreq>monthly</changefreq></url>
 <url><loc>https://dohyeontech.github.io/radar/</loc><lastmod>2026-11-28</lastmod><priority>0.9</priority><changefreq>hourly</changefreq></url>
+<url><loc>https://dohyeontech.github.io/posts/hexpm-incident-69-requests-forensics/</loc><lastmod>2026-11-28</lastmod><priority>0.9</priority><changefreq>monthly</changefreq></url>
 <url><loc>https://dohyeontech.github.io/posts/geoserver-rce-chain-cve-2026-120705-129243/</loc><lastmod>2026-11-28</lastmod><priority>0.9</priority><changefreq>monthly</changefreq></url>
 <url><loc>https://dohyeontech.github.io/posts/1password-github-cicd-backend-breach/</loc><lastmod>2026-11-27</lastmod><priority>0.9</priority><changefreq>monthly</changefreq></url>
 <url><loc>https://dohyeontech.github.io/posts/hexpm-struct-rce-cve-2026-129514/</loc><lastmod>2026-11-26</lastmod><priority>0.9</priority><changefreq>monthly</changefreq></url>
